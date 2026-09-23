@@ -14,17 +14,25 @@ def get_connection():
 
 def run_query(sql, params=None):
     """รัน SELECT คืนผลเป็น list ของ dict"""
-    conn = get_connection(); cur = conn.cursor(dictionary=True)
-    cur.execute(sql, params or ()); rows = cur.fetchall()
-    cur.close(); conn.close(); return rows
+    conn = get_connection()
+    cur = conn.cursor(dictionary=True)
+    cur.execute(sql, params or ())
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
 
 
 def run_command(sql, params=None):
     """รัน INSERT / UPDATE / DELETE แล้ว commit"""
-    conn = get_connection(); cur = conn.cursor()
-    cur.execute(sql, params or ()); conn.commit()
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(sql, params or ())
+    conn.commit()
     out = {"new_id": cur.lastrowid, "affected": cur.rowcount}
-    cur.close(); conn.close(); return out
+    cur.close()
+    conn.close()
+    return out
 
 
 def _todo(name):
@@ -37,13 +45,45 @@ def search_customers(filters):
     คำใบ้: เริ่มจาก sql = "SELECT * FROM customer WHERE 1=1"
     แล้วต่อเงื่อนไขเฉพาะ filter ที่มีค่า (ข้อความใช้ LIKE %s, อื่น ๆ ใช้ = %s)"""
     # TODO: เขียน SQL ค้นหาแบบยืดหยุ่นตาม filters (ใช้ %s เสมอ)
-    _todo("search_customers")
+    # _todo("search_customers")
+
+    if "name" in filters:
+        filters["name"] = f"%{filters["name"]}%"
+
+    if "email" in filters:
+        filters["email"] = f"%{filters["email"]}%"
+
+    filter_options = {
+        "name": "name LIKE %s",
+        "email": "email LIKE %s",
+        "tier": "tier = %s",
+    }
+
+    filter_stirng = ""
+    args = ()
+
+    for index, key in enumerate(filters.keys()):
+        if index == 0:
+            filter_stirng += " WHERE "
+        else:
+            filter_stirng += " AND "
+
+        filter_stirng += filter_options[key]
+        args = (*args, filters[key])
+
+    query_string = f" SELECT * FROM customer {filter_stirng} "
+
+    return run_query(query_string, args)
 
 
 def get_customer(cust_id):
     """ดึง ลูกค้า 1 รายการตาม cust_id (ใช้ตอนเปิดฟอร์มแก้ไข)"""
     # TODO: SELECT * FROM customer WHERE cust_id = %s แล้วคืนแถวเดียว
-    _todo("get_customer")
+    # _todo("get_customer")
+
+    customer = run_query(
+        " SELECT * FROM customer WHERE cust_id = %s ", (cust_id,))
+    return customer[0] if len(customer) > 0 else None
 
 
 def create_customer(data):
@@ -64,18 +104,51 @@ def delete_customer(cust_id):
     _todo("delete_customer")
 
 # ---------- สินค้า (product) ----------
+
+
 def search_products(filters):
     """ค้นหา สินค้า ตามเงื่อนไข (name, category)
     คำใบ้: เริ่มจาก sql = "SELECT * FROM product WHERE 1=1"
     แล้วต่อเงื่อนไขเฉพาะ filter ที่มีค่า (ข้อความใช้ LIKE %s, อื่น ๆ ใช้ = %s)"""
     # TODO: เขียน SQL ค้นหาแบบยืดหยุ่นตาม filters (ใช้ %s เสมอ)
-    _todo("search_products")
+    # _todo("search_products")
+
+    if "name" in filters:
+        filters["name"] = f"%{filters["name"]}%"
+
+    if "category" in filters:
+        filters["category"] = f"%{filters["category"]}%"
+
+    filter_options = {
+        "name": "name LIKE %s",
+        "category": "category LIKE %s",
+    }
+
+    filter_stirng = ""
+    args = ()
+
+    for index, key in enumerate(filters.keys()):
+        if index == 0:
+            filter_stirng += " WHERE "
+        else:
+            filter_stirng += " AND "
+
+        filter_stirng += filter_options[key]
+        args = (*args, filters[key])
+
+    query_string = f" SELECT * FROM product {filter_stirng} "
+
+    return run_query(query_string, args)
 
 
 def get_product(product_id):
     """ดึง สินค้า 1 รายการตาม product_id (ใช้ตอนเปิดฟอร์มแก้ไข)"""
     # TODO: SELECT * FROM product WHERE product_id = %s แล้วคืนแถวเดียว
-    _todo("get_product")
+    # _todo("get_product")
+
+    product = run_query(
+        " SELECT * FROM product WHERE product_id = %s ", (product_id,))
+    return product[0] if len(product) > 0 else None
 
 
 def create_product(data):
@@ -96,18 +169,45 @@ def delete_product(product_id):
     _todo("delete_product")
 
 # ---------- ออเดอร์ (shop_order) ----------
+
+
 def search_orders(filters):
     """ค้นหา ออเดอร์ ตามเงื่อนไข (cust_id, status)
     คำใบ้: เริ่มจาก sql = "SELECT * FROM shop_order WHERE 1=1"
     แล้วต่อเงื่อนไขเฉพาะ filter ที่มีค่า (ข้อความใช้ LIKE %s, อื่น ๆ ใช้ = %s)"""
     # TODO: เขียน SQL ค้นหาแบบยืดหยุ่นตาม filters (ใช้ %s เสมอ)
-    _todo("search_orders")
+    # _todo("search_orders")
+
+    filter_options = {
+        "cust_id": "cust_id = %s",
+        "status": "status = %s",
+    }
+
+    filter_stirng = ""
+    args = ()
+
+    for index, key in enumerate(filters.keys()):
+        if index == 0:
+            filter_stirng += " WHERE "
+        else:
+            filter_stirng += " AND "
+
+        filter_stirng += filter_options[key]
+        args = (*args, filters[key])
+
+    query_string = f" SELECT * FROM shop_order {filter_stirng} "
+
+    return run_query(query_string, args)
 
 
 def get_order(order_id):
     """ดึง ออเดอร์ 1 รายการตาม order_id (ใช้ตอนเปิดฟอร์มแก้ไข)"""
     # TODO: SELECT * FROM shop_order WHERE order_id = %s แล้วคืนแถวเดียว
-    _todo("get_order")
+    # _todo("get_order")
+
+    order = run_query(
+        " SELECT * FROM shop_order WHERE cust_id = %s ", (order_id,))
+    return order[0] if len(order) > 0 else None
 
 
 def create_order(data):
@@ -137,17 +237,20 @@ def report_summary():
     # TODO: นับจำนวนรวมต่าง ๆ เพื่อแสดงบนการ์ด
     _todo("report_summary")
 
+
 def report_best_selling():
     """📈 สินค้าขายดี (Best Sellers)
     คำใบ้: JOIN order_line→product, GROUP BY product, SUM(qty), ORDER BY DESC, LIMIT 5"""
     # TODO: เขียน SQL รายงานนี้ (เขียน JOIN แบบ explicit INNER JOIN ... ON ...)
     _todo("report_best_selling")
 
+
 def report_customers_above_avg():
     """🏅 ลูกค้าที่ซื้อมากกว่าค่าเฉลี่ย (Above Average)
     คำใบ้: JOIN shop_order→order_line, GROUP BY customer, HAVING SUM(qty*unit_price) > (subquery AVG)"""
     # TODO: เขียน SQL รายงานนี้ (เขียน JOIN แบบ explicit INNER JOIN ... ON ...)
     _todo("report_customers_above_avg")
+
 
 def report_high_rated():
     """⭐ สินค้าคะแนนรีวิวเฉลี่ย ≥ 4 (HAVING)
