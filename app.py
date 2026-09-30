@@ -1,11 +1,28 @@
 # ============================================================
-#  app.py — เว็บแอป Flask (ทำให้เสร็จแล้ว ★ ไม่ต้องแก้)
+#  app.py — เว็บแอป Flask (ทำให้เสร็จแล้ว ★ ปกติไม่ต้องแก้)
 #  รัน:  python app.py  แล้วเปิด http://127.0.0.1:5000
+#  ★ เพิ่มรายงานใหม่ไม่ต้องแก้ไฟล์นี้ — ไปเพิ่มที่ REPORTS ท้าย db.py
 # ============================================================
+from datetime import date, datetime
 from flask import Flask, request, jsonify, render_template
+from flask.json.provider import DefaultJSONProvider
 import db
 
+
+class JSONProvider(DefaultJSONProvider):
+    """- ส่งวันที่เป็นรูปแบบ YYYY-MM-DD ให้ช่อง <input type="date"> ในฟอร์มอ่านได้
+       - ไม่เรียงชื่อคอลัมน์ใหม่ → หัวตารางเรียงตามลำดับใน SELECT"""
+    sort_keys = False
+
+    @staticmethod
+    def default(o):
+        if isinstance(o, (date, datetime)):
+            return o.isoformat()
+        return DefaultJSONProvider.default(o)
+
+
 app = Flask(__name__)
+app.json = JSONProvider(app)
 
 
 def safe(fn, *args, **kwargs):
@@ -13,6 +30,9 @@ def safe(fn, *args, **kwargs):
         return jsonify({"ok": True, "data": fn(*args, **kwargs)})
     except NotImplementedError as e:
         return jsonify({"ok": False, "todo": True, "error": str(e)}), 501
+    except ValueError as e:
+        # ข้อผิดพลาดที่ db.py ตั้งใจแจ้งผู้ใช้ เช่น raise ValueError("คลาสนี้เต็มแล้ว")
+        return jsonify({"ok": False, "error": str(e)}), 400
     except Exception as e:
         return jsonify({"ok": False, "error": f"{type(e).__name__}: {e}"}), 500
 
@@ -93,21 +113,23 @@ def order_delete(_id):
     return safe(db.delete_order, _id)
 
 
+# ---- รายงาน ----
 @app.route("/api/reports/summary")
 def report_summary():
     return safe(db.report_summary)
 
-@app.route("/api/reports/best-selling")
-def route_report_best_selling():
-    return safe(db.report_best_selling)
+@app.route("/api/reports")
+def report_list():
+    """รายชื่อรายงานทั้งหมด (อ่านจาก db.REPORTS) ให้หน้าเว็บสร้างกล่องรายงาน"""
+    return jsonify({"ok": True, "data": [{"key": k, "title": t} for k, t, _ in db.REPORTS]})
 
-@app.route("/api/reports/top-customers")
-def route_report_customers_above_avg():
-    return safe(db.report_customers_above_avg)
-
-@app.route("/api/reports/high-rated")
-def route_report_high_rated():
-    return safe(db.report_high_rated)
+@app.route("/api/reports/<key>")
+def report_run(key):
+    """รันรายงานตามชื่อ เช่น /api/reports/overdue"""
+    for k, _, fn in db.REPORTS:
+        if k == key:
+            return safe(fn)
+    return jsonify({"ok": False, "error": f"ไม่พบรายงาน '{key}' ใน db.REPORTS"}), 404
 
 
 if __name__ == "__main__":

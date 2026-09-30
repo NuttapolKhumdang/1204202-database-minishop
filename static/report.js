@@ -16,18 +16,25 @@ function fillTable(tableSel, statusSel, r) {
   tbody.innerHTML = rows.map(row => "<tr>" + cols.map(c => "<td>" + (row[c] ?? "—") + "</td>").join("") + "</tr>").join("");
 }
 async function loadSummary() {
+  // report_summary() คืน dict {ชื่อการ์ด: ตัวเลข} → 1 คีย์ = 1 การ์ด
   const r = await api("/api/reports/summary");
-  if (!r.ok) return;
-  const d = r.data || {};
-  if (d.customers !== undefined) $("#m_cus").textContent = d.customers;
-  if (d.products !== undefined) $("#m_prd").textContent = d.products;
-  if (d.orders !== undefined) $("#m_ord").textContent = d.orders;
-  if (d.reviews !== undefined) $("#m_rev").textContent = d.reviews;
+  const box = $("#summary");
+  if (!r.ok) { box.innerHTML = '<div style="grid-column:1/-1" class="status ' + (r.todo ? "todo" : "err") + '">' + (r.todo ? "🚧 " : "⚠️ ") + r.error + '</div>'; return; }
+  box.innerHTML = Object.entries(r.data || {}).map(([label, num]) =>
+    '<div class="metric"><div class="metric-num">' + (num ?? "—") + '</div><div class="metric-label">' + label + '</div></div>').join("");
 }
 async function loadAll() {
   loadSummary();
-  fillTable("#bestTable", "#bestStatus", await api("/api/reports/best-selling"));
-  fillTable("#topcusTable", "#topcusStatus", await api("/api/reports/top-customers"));
-  fillTable("#ratedTable", "#ratedStatus", await api("/api/reports/high-rated"));
+  // สร้างกล่องรายงานตามรายการ REPORTS ใน db.py
+  const list = await api("/api/reports");
+  for (const rep of (list.data || [])) {
+    const id = "rep_" + rep.key.replace(/\W/g, "_");
+    const sec = document.createElement("section");
+    sec.className = "card";
+    sec.innerHTML = '<h3>' + rep.title + '</h3><div id="' + id + '_status" class="status"></div>' +
+      '<div class="table-wrap"><table id="' + id + '_table"><thead></thead><tbody></tbody></table></div>';
+    $("#reports").appendChild(sec);
+    fillTable("#" + id + "_table", "#" + id + "_status", await api("/api/reports/" + rep.key));
+  }
 }
 loadAll();
