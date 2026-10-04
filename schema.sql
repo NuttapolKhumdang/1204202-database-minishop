@@ -21,6 +21,8 @@ CREATE TABLE customer (
     cust_id         INT AUTO_INCREMENT PRIMARY KEY,
     name            VARCHAR(100) NOT NULL,
     email           VARCHAR(100) NOT NULL,
+    gender          VARCHAR(8),
+    birthdate       DATE,
     tier            VARCHAR(6) NOT NULL DEFAULT 'normal',
 
     CONSTRAINT chk_cust_tier CHECK (tier IN ('normal', 'silver', 'gold', 'vip'))
@@ -29,12 +31,13 @@ CREATE TABLE customer (
 CREATE TABLE address (
     address_id      INT AUTO_INCREMENT PRIMARY KEY,
     cust_id         INT,
-    title           VARCHAR(36),
-    address         VARCHAR(100) NOT NULL,
+    address_type    VARCHAR(36),
+    line_1          VARCHAR(100) NOT NULL,
+    line_2          VARCHAR(100),
+    province        VARCHAR(100) NOT NULL,
     postal_code     VARCHAR(6) NOT NULL,
-    is_default      BOOLEAN DEFAULT TRUE,
 
-    CONSTRAINT fk_address_custmer FOREIGN KEY (cust_id)
+    CONSTRAINT fk_address_custmer   FOREIGN KEY (cust_id)
         REFERENCES customer (cust_id)
         ON UPDATE CASCADE
         ON DELETE CASCADE
