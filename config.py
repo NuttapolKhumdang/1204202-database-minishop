@@ -6,8 +6,8 @@
 # ============================================================
 
 #สามารถ connect เป็น localhost ในเครื่องตัวเองได้
-DB_HOST = "202.28.34.202"               # TODO: host ที่อาจารย์แจกให้
-DB_USER = "s...."                     # TODO: username ของนิสิต
-DB_PASSWORD = "s....pwd"                 # TODO: password ของนิสิต
-DB_NAME = "prymania_s...."              # TODO: ชื่อฐานข้อมูลของนิสิต
+DB_HOST = "localhost"               # TODO: host ที่อาจารย์แจกให้
+DB_USER = "root"                     # TODO: username ของนิสิต
+DB_PASSWORD = "1234"                 # TODO: password ของนิสิต
+DB_NAME = "shop_online"              # TODO: ชื่อฐานข้อมูลของนิสิต
 DB_PORT = 3306
