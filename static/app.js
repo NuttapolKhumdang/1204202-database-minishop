@@ -28,6 +28,8 @@ const ENTITIES = {
         "options": [
           "",
           "normal",
+          "silver",
+          "gold",
           "vip"
         ]
       }
@@ -115,7 +117,9 @@ const ENTITIES = {
         "options": [
           "",
           "pending",
-          "shipped"
+          "shipped",
+          "complete",
+          "cancel"
         ]
       }
     ],
@@ -173,7 +177,7 @@ async function loadOptions(fields, forSearch) {
   for (const f of fields.filter(f => f.optionsFrom)) {
     const src = f.optionsFrom, r = await api(src.api);
     f.options = r.ok ? (r.data || []).map(row => ({ value: row[src.value], label: row[src.label] }))
-                     : [{ value: "", label: (r.todo ? "🚧 " : "⚠️ ") + r.error }];
+      : [{ value: "", label: (r.todo ? "🚧 " : "⚠️ ") + r.error }];
     if (forSearch && r.ok) f.options.unshift({ value: "", label: "ทั้งหมด" });
   }
 }
