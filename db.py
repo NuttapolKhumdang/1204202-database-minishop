@@ -621,6 +621,82 @@ def summary_best_selling(filters):
 
     return run_query(sql, tuple(params))
 
+def summary_customers_above_avg(filters):
+    # range: 1d, 7d, 1m, 6m, 1y
+    range_val = filters.get("range") if isinstance(filters, dict) else filters
+
+    # แมปช่วงเวลาเป็น SQL INTERVAL
+    interval_map = {
+        "1d": "1 DAY",
+        "7d": "7 DAY",
+        "1m": "1 MONTH",
+        "6m": "6 MONTH",
+        "1y": "1 YEAR"
+    }
+
+    interval = None
+    if range_val in interval_map:
+        interval = interval_map[range_val]
+
+    sql = f"""
+     SELECT c.cust_id as 'รหัสลูกค้า', c.name as 'ชื่อลูกค้า',
+           SUM(ol.qty * ol.unit_price) AS 'ยอดซื้อรวม'
+    FROM customer AS c
+    INNER JOIN shop_order AS so
+        ON c.cust_id = so.cust_id
+    INNER JOIN order_line AS ol
+        ON so.order_id = ol.order_id
+    WHERE so.order_date >= CURRENT_DATE - INTERVAL {interval}
+    GROUP BY c.cust_id, c.name
+    HAVING SUM(ol.qty * ol.unit_price) > (
+        SELECT AVG(customer_total)
+        FROM (
+            SELECT SUM(ol2.qty * ol2.unit_price) AS customer_total
+            FROM shop_order AS so2
+            INNER JOIN order_line AS ol2
+                ON so2.order_id = ol2.order_id
+            WHERE so2.order_date >= CURRENT_DATE - INTERVAL {interval}
+            GROUP BY so2.cust_id
+        ) AS totals
+    )
+    ORDER BY `ยอดซื้อรวม` DESC
+    """
+
+    return run_query(sql)
+
+
+def summary_high_rated(filters):
+    range_val = filters.get("range") if isinstance(filters, dict) else filters
+
+    # แมปช่วงเวลาเป็น SQL INTERVAL
+    interval_map = {
+        "1d": "1 DAY",
+        "7d": "7 DAY",
+        "1m": "1 MONTH",
+        "6m": "6 MONTH",
+        "1y": "1 YEAR"
+    }
+
+    interval = None
+    if range_val in interval_map:
+        interval = interval_map[range_val]
+
+    sql = f"""
+    SELECT p.product_id as 'รหัสสินค้า', p.name as 'ชื่อสินค้า',
+           ROUND(AVG(r.rating), 1) AS 'คะแนนเฉลี่ย',
+           COUNT(r.rating) AS 'จำนวนรีวิว'
+    FROM review AS r
+    INNER JOIN order_line AS ol
+        ON r.order_id = ol.order_id
+    INNER JOIN product AS p
+        ON ol.product_id = p.product_id
+    WHERE r.review_date >= CURRENT_DATE - INTERVAL {interval}
+    GROUP BY p.product_id, p.name
+    HAVING AVG(r.rating) >= 4
+    ORDER BY `คะแนนเฉลี่ย` DESC
+    """
+
+    return run_query(sql)
 
 # ============================================================
 #  รายการรายงานที่แสดงบนหน้า /report  (เรียงตามลำดับที่แสดง)
@@ -639,4 +715,7 @@ REPORTS = [
 
 SUMMARY = [
     ("best-selling",  " สินค้าขายดี (Best Sellers) 📈", summary_best_selling),
+    ("top-customers", " ลูกค้าที่ซื้อมากกว่าค่าเฉลี่ย (Above Average) 🏅",
+         summary_customers_above_avg),
+        ("high-rated",    "⭐ สินค้าคะแนนรีวิวเฉลี่ย ≥ 4 (HAVING)", summary_high_rated)
 ]
