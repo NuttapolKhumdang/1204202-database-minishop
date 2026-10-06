@@ -233,9 +233,6 @@ tr:nth-child(even) td {
 }
 
 .cards {
-  /* display: grid; */
-  /* grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); */
-
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -250,7 +247,7 @@ tr:nth-child(even) td {
   border-radius: 14px;
   padding: 20px;
   text-align: center;
-  box-shadow: 0 4px 14px rgba(40, 60, 110, .06);
+  box-shadow: 0 4px 14px rgba(40, 60, 110, .06)
 }
 
 .metric-num {

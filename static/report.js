@@ -7,7 +7,7 @@ function fillTable(tableSel, statusSel, r) {
   const t = $(tableSel), st = $(statusSel);
   const thead = t.querySelector("thead"), tbody = t.querySelector("tbody");
   thead.innerHTML = ""; tbody.innerHTML = "";
-  if (!r.ok) { st.className = "status " + (r.todo ? "todo" : "err"); st.textContent = (r.todo ? "🚧 " : "⚠️ ") + r.error; return; }
+  if (!r.ok) { st.className = "status " + (r.todo ? "todo" : "err"); st.textContent = (r.todo ? "🚧" : "⚠️ ") + r.error; return; }
   const rows = r.data || [];
   if (!rows.length) { st.className = "status"; st.textContent = "ไม่มีข้อมูล"; return; }
   st.textContent = "";
