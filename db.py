@@ -14,17 +14,25 @@ def get_connection():
 
 def run_query(sql, params=None):
     """รัน SELECT คืนผลเป็น list ของ dict"""
-    conn = get_connection(); cur = conn.cursor(dictionary=True)
-    cur.execute(sql, params or ()); rows = cur.fetchall()
-    cur.close(); conn.close(); return rows
+    conn = get_connection()
+    cur = conn.cursor(dictionary=True)
+    cur.execute(sql, params or ())
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return rows
 
 
 def run_command(sql, params=None):
     """รัน INSERT / UPDATE / DELETE แล้ว commit"""
-    conn = get_connection(); cur = conn.cursor()
-    cur.execute(sql, params or ()); conn.commit()
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(sql, params or ())
+    conn.commit()
     out = {"new_id": cur.lastrowid, "affected": cur.rowcount}
-    cur.close(); conn.close(); return out
+    cur.close()
+    conn.close()
+    return out
 
 
 def blank_to_none(value):
@@ -40,7 +48,7 @@ def _todo(name):
 # ---------- ลูกค้า (customer) ----------
 def search_customers(filters):
     sql = "SELECT cust_id as 'รหัสลูกค้า', name as 'ชื่อลูกค้า', " \
-    "       email as 'อีเมล', address as 'ที่อยู่', tier as 'ระดับ' FROM customer WHERE 1=1"
+        "       email as 'อีเมล', address as 'ที่อยู่', tier as 'ระดับ' FROM customer WHERE 1=1"
     params = []
     if filters.get("name"):
         sql += " AND name LIKE %s"
@@ -62,7 +70,7 @@ def search_customers(filters):
 
 def get_customer(cust_id):
     rows = run_query("SELECT * FROM customer WHERE cust_id = %s", (cust_id,))
-    return rows[0] if rows else None  
+    return rows[0] if rows else None
 
 
 def create_customer(data):
@@ -73,7 +81,8 @@ def create_customer(data):
 
 def update_customer(cust_id, data):
     sql = "UPDATE customer SET name=%s, email=%s, address=%s, tier=%s WHERE cust_id=%s"
-    params = (data["name"], data["email"], data["address"], data["tier"], cust_id)
+    params = (data["name"], data["email"],
+              data["address"], data["tier"], cust_id)
     return run_command(sql, params)
 
 
@@ -81,6 +90,8 @@ def delete_customer(cust_id):
     return run_command("DELETE FROM customer WHERE cust_id=%s", (cust_id,))
 
 # ---------- สินค้า (product) ----------
+
+
 def search_products(filters):
     sql = "SELECT product_id as 'รหัสสินค้า', name as 'ชื่อสินค้า', " \
           "category as 'หมวดหมู่', price as 'ราคา', stock as 'จำนวนคงเหลือ' FROM product WHERE 1=1"
@@ -118,7 +129,8 @@ def create_product(data):
 
 def update_product(product_id, data):
     sql = "UPDATE product SET name=%s, category=%s, price=%s, stock=%s WHERE product_id=%s"
-    params = (data["name"], data["category"], data["price"], data["stock"], product_id)
+    params = (data["name"], data["category"],
+              data["price"], data["stock"], product_id)
     return run_command(sql, params)
 
 
@@ -126,6 +138,8 @@ def delete_product(product_id):
     return run_command("DELETE FROM product WHERE product_id=%s", (product_id,))
 
 # ---------- ออเดอร์ (shop_order) ----------
+
+
 def search_orders(filters):
     sql = "SELECT order_id as 'รหัสออเดอร์', cust_id as 'รหัสลูกค้า', " \
           "order_date as 'วันที่สั่งซื้อ', status as 'สถานะ' FROM shop_order WHERE 1=1"
@@ -156,28 +170,30 @@ def get_order(order_id):
 
 
 def check_can_ship(order_id):
-    rows = run_query("SELECT status FROM shop_order WHERE order_id = %s", (order_id,))
+    rows = run_query(
+        "SELECT status FROM shop_order WHERE order_id = %s", (order_id,))
     if not rows:
         return False, f"ไม่พบออเดอร์นี้: {order_id}"
 
-    status = rows[0]["status"] # type: ignore
+    status = rows[0]["status"]  # type: ignore
     if status != "pending":
         return False, f"ออเดอร์นี้ไม่สามารถจัดส่งได้ (สถานะปัจจุบัน: {status})"
-    
+
     sql = """SELECT b.order_id as 'รหัสออเดอร์', b.cust_id as 'รหัสลูกค้า', b.order_date as 'วันที่สั่งซื้อ', 
                     b.status as 'สถานะ', a.product_id as 'รหัสสินค้า', a.qty as 'จำนวน', a.unit_price as 'ราคาต่อหน่วย'
 
               FROM order_line a
               JOIN shop_order b ON a.order_id = b.order_id
               WHERE b.order_id = %s""", (order_id,)
-    
+
     rows = run_query(sql, (order_id,))
     if not rows:
         return False, f"ออเดอร์นี้ไม่สามารถจัดส่งได้ (ไม่มีรายการสินค้า)"
-    
-    available = rows[0]["available"] # type: ignore
+
+    available = rows[0]["available"]  # type: ignore
     if not available:
         return False, f"ออเดอร์นี้ไม่สามารถจัดส่งได้ (สินค้าไม่พร้อม)"
+
 
 def create_order(data):
     sql = "INSERT INTO shop_order (cust_id, order_date, status) VALUES (%s, %s, %s)"
@@ -193,7 +209,6 @@ def update_order(order_id, data):
 
 def delete_order(order_id):
     return run_command("DELETE FROM shop_order WHERE order_id=%s", (order_id,))
-    
 
 
 # ============================================================
@@ -211,6 +226,7 @@ def report_summary():
           """
     return run_query(sql)[0]
 
+
 def report_best_selling():
     """📈 สินค้าขายดี (Best Sellers)
     คำใบ้: JOIN order_line→product, GROUP BY product, SUM(qty), ORDER BY DESC, LIMIT 5"""
@@ -225,6 +241,7 @@ def report_best_selling():
     LIMIT 5
     """
     return run_query(sql)
+
 
 def report_customers_above_avg():
     """🏅 ลูกค้าที่ซื้อมากกว่าค่าเฉลี่ย (Above Average)"""
@@ -251,6 +268,7 @@ def report_customers_above_avg():
     """
     return run_query(sql)
 
+
 def report_high_rated():
     """⭐ สินค้าคะแนนรีวิวเฉลี่ย ≥ 4 (HAVING)"""
     sql = """
@@ -266,6 +284,13 @@ def report_high_rated():
     """
     return run_query(sql)
 
+
+def summary_best_selling(filters):
+    # range: 1d, 7d, 1m, 6m, 1y
+    print(filters)
+    _todo('Query Summary')
+
+
 # ============================================================
 #  รายการรายงานที่แสดงบนหน้า /report  (เรียงตามลำดับที่แสดง)
 #  ★ วิธีเพิ่มรายงานใหม่ (ไม่ต้องแก้ไฟล์อื่น):
@@ -275,7 +300,12 @@ def report_high_rated():
 #  ★ ห้ามตั้งชื่อ url ว่า "summary" (ใช้แล้วสำหรับการ์ดสรุป)
 # ============================================================
 REPORTS = [
-    ("best-selling",  " สินค้าขายดี (Best Sellers) 📈",                    report_best_selling),
-    ("top-customers", " ลูกค้าที่ซื้อมากกว่าค่าเฉลี่ย (Above Average) 🏅", report_customers_above_avg),
-    ("high-rated",    "⭐ สินค้าคะแนนรีวิวเฉลี่ย ≥ 4 (HAVING)",           report_high_rated)
+    ("best-selling",  " สินค้าขายดี (Best Sellers) 📈",  report_best_selling),
+    ("top-customers", " ลูกค้าที่ซื้อมากกว่าค่าเฉลี่ย (Above Average) 🏅",
+     report_customers_above_avg),
+    ("high-rated",    "⭐ สินค้าคะแนนรีวิวเฉลี่ย ≥ 4 (HAVING)", report_high_rated)
+]
+
+SUMMARY = [
+    ("best-selling",  " สินค้าขายดี (Best Sellers) 📈", summary_best_selling),
 ]

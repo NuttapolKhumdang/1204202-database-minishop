@@ -306,3 +306,21 @@ tr:nth-child(even) td {
 #formFields .field {
   margin-bottom: 10px
 }
+
+.option-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1rem 0;
+}
+
+.option-container select {
+  background: #fff;
+  padding: 0.5rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-weight: 600;
+
+  min-width: 6rem;
+}

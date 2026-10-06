@@ -45,6 +45,10 @@ def page_home():
 def page_report():
     return render_template("report.html")
 
+@app.route("/summary")
+def page_summary():
+    return render_template("summary.html")
+
 
 # ---- ลูกค้า ----
 @app.route("/api/customers", methods=["GET"])
@@ -130,6 +134,21 @@ def report_run(key):
         if k == key:
             return safe(fn)
     return jsonify({"ok": False, "error": f"ไม่พบรายงาน '{key}' ใน db.REPORTS"}), 404
+
+@app.route("/api/summary")
+def summary_list():
+    """รายชื่อรายงานทั้งหมด (อ่านจาก db.REPORTS) ให้หน้าเว็บสร้างกล่องรายงาน"""
+    return jsonify({"ok": True, "data": [{"key": k, "title": t} for k, t, _ in db.SUMMARY]})
+
+@app.route("/api/summary/<key>")
+def summary_run(key):
+    """รันรายงานตามชื่อ เช่น /api/reports/overdue"""
+    filters = {k: v for k, v in request.args.items() if v}
+
+    for k, _, fn in db.SUMMARY:
+        if k == key:
+            return safe(fn, filters)
+    return jsonify({"ok": False, "error": f"ไม่พบรายงาน '{key}' ใน db.SUMMARY"}), 404
 
 
 if __name__ == "__main__":

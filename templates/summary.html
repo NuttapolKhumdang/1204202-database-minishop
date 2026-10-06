@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>รายงาน — Mini Online Shop</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">ร้านค้าออนไลน์ 🛒 <span>Mini Online Shop</span></div>
+
+      <nav>
+        <a href="/">จัดการข้อมูล</a>
+        <a href="/report">รายงาน</a>
+        <a href="/summary" class="active">สรุปข้อมูล</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="option-container">
+        <div></div>
+        <select id="rangeSelector" class="option-selecter">
+          <option id="rangeOption" value="1d">วันนี้</option>
+          <option id="rangeOption" value="7d">สัปดาห์</option>
+          <option id="rangeOption" value="1m">1 เดือน</option>
+          <option id="rangeOption" value="6m">6 เดือน</option>
+          <option id="rangeOption" value="1y">1 ปี</option>
+        </select>
+      </section>
+
+      <script>
+        const filter = new URLSearchParams(window.location.search);
+        const rangeSelector = document.querySelector("#rangeSelector");
+        const rangeOptions = document.querySelectorAll("option#rangeOption");
+        const range = filter.get("range");
+
+        for (let i = 0; i < rangeOptions.length; i++) {
+          if (rangeOptions[i].value == range) {
+            rangeOptions[i].setAttribute("selected", true);
+            break;
+          }
+        }
+
+        rangeSelector.addEventListener("change", (ev) => {
+          window.location.replace("/summary?range=" + ev.target.value);
+        });
+      </script>
+      <!-- กล่องรายงาน: สร้างจาก db.REPORTS อัตโนมัติ (เพิ่มรายงานที่ db.py ไม่ต้องแก้ไฟล์นี้) -->
+      <div id="reports"></div>
+    </main>
+    <script src="{{ url_for('static', filename='summary.js') }}"></script>
+  </body>
+</html>

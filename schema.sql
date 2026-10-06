@@ -92,7 +92,7 @@ CREATE TABLE shop_order (
     order_id        INT AUTO_INCREMENT PRIMARY KEY,
     cust_id         INT NOT NULL,
     order_date      DATE NOT NULL DEFAULT (CURRENT_DATE),
-    status          VARCHAR(7) DEFAULT 'pending',
+    status          VARCHAR(8) DEFAULT 'pending',
 
     address         INT,
     sub_total       DECIMAL(9, 2) NOT NULL,
