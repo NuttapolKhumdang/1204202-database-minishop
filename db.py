@@ -9,11 +9,13 @@
 # ============================================================
 import re
 from decimal import Decimal, InvalidOperation
+
 import mysql.connector
 import config
 
 
 def get_connection():
+    """เปิดการเชื่อมต่อฐานข้อมูล MySQL (ค่าตั้งต้นอยู่ใน config.py)"""
     return mysql.connector.connect(
         host=config.DB_HOST, user=config.DB_USER, password=config.DB_PASSWORD,
         database=config.DB_NAME, port=config.DB_PORT)
@@ -43,8 +45,7 @@ _CHECK_MSG = {
 
 
 def _friendly(err):
-    """แปลง error ของ MySQL ที่เจอบ่อยให้เป็น ValueError ภาษาไทย
-    (app.py จะส่งข้อความนี้ไปแสดงบนหน้าเว็บ) — คืน None ถ้าเป็น error ที่ไม่รู้จัก"""
+    """แปลง error ของ MySQL ที่เจอบ่อยเป็น ValueError ภาษาไทย (แสดงบนหน้าเว็บ) — ไม่รู้จักคืน None"""
     if err.errno == 1451:      # ลบ/แก้แถวที่ตารางอื่นยังอ้างอิงอยู่ (FK)
         return ValueError("ทำรายการไม่ได้ เพราะยังมีข้อมูลอื่นอ้างอิงอยู่ "
                           "(เช่น ออเดอร์ รายการสินค้า การชำระเงิน หรือรีวิว)")
@@ -62,8 +63,7 @@ def _friendly(err):
 
 
 def run_transaction(work):
-    """รันหลายคำสั่งเป็น transaction เดียว: work(cur) จะทำกี่คำสั่งก็ได้
-    จบปกติ → commit / เกิด error → rollback ทั้งหมด (ใช้ตอนต้องเขียนหลายตารางพร้อมกัน เช่น customer + address)"""
+    """รันหลายคำสั่งเป็น transaction เดียว: สำเร็จ = commit, เกิด error = rollback ทั้งหมด"""
     conn = get_connection()
     try:
         cur = conn.cursor(dictionary=True)
@@ -92,12 +92,12 @@ def run_command(sql, params=None):
 
 
 def blank_to_none(value):
-    """ช่องที่ไม่ได้กรอกในฟอร์มจะส่งมาเป็น "" — แปลงเป็น None (= NULL ใน SQL)
-    ใช้กับคอลัมน์ที่ว่างได้ เช่น return_date, paid_date  เพราะ MySQL ไม่รับ '' เป็น DATE"""
+    """แปลงช่องว่าง (สตริงว่าง) ที่ฟอร์มส่งมาเป็น None (= NULL ใน SQL)"""
     return None if value in ("", None) else value
 
 
 def _todo(name):
+    """แจ้งว่าฟังก์ชันยังไม่ได้เขียน (ตอนนี้ไม่มีที่ไหนเรียกใช้แล้ว)"""
     raise NotImplementedError(f"TODO: ยังไม่ได้เขียนฟังก์ชัน {name} ใน db.py")
 
 
@@ -106,13 +106,11 @@ def _text(value):
     return None if value is None else blank_to_none(str(value).strip())
 
 
-def _money(value, default: Decimal | int | str = 0):
+def _money(value, default=0):
     """แปลงค่าที่ส่งมาเป็นตัวเลขทศนิยม (ว่าง → default)"""
     value = blank_to_none(value)
     if value is None:
-        if default is None:
-            return Decimal("0")
-        return Decimal(str(default))
+        return Decimal(default)
     try:
         return Decimal(str(value))
     except InvalidOperation:
@@ -120,10 +118,7 @@ def _money(value, default: Decimal | int | str = 0):
 
 
 def _build_set(data, skip_blank=(), blank_to_null=()):
-    """สร้างส่วน SET ของ UPDATE เฉพาะคอลัมน์ที่ส่งมาใน data → คืน ("a=%s, b=%s", [ค่า a, ค่า b])
-      skip_blank   : คอลัมน์ NOT NULL — ถ้าส่งมาเป็นช่องว่างให้ข้าม (ไม่แก้ค่าเดิม)
-      blank_to_null: คอลัมน์ที่ว่างได้ — ถ้าส่งมาเป็นช่องว่างให้ตั้งเป็น NULL
-    ชื่อคอลัมน์มาจากรายการในโค้ดเท่านั้น (ไม่ได้มาจากผู้ใช้) ส่วนค่าส่งผ่าน %s ตามปกติ จึงปลอดภัย"""
+    """สร้างส่วน SET ของ UPDATE เฉพาะคอลัมน์ที่ส่งมา (ชื่อคอลัมน์มาจากโค้ด ค่าส่งผ่าน %s จึงปลอดภัย)"""
     cols, params = [], []
     for col in (*skip_blank, *blank_to_null):
         if col not in data:
@@ -144,13 +139,7 @@ _ADDRESS_RE = re.compile(r"^(?P<line_1>.+?)\s+(?P<province>\S+)\s+(?P<postal_cod
 
 
 def _address_from(data, old=None):
-    """อ่านที่อยู่จาก data เพื่อบันทึกลงตาราง address — รับได้ 2 แบบ
-      1) แยกช่อง : line_1, line_2, province, postal_code (+ address_type)
-      2) ช่องเดียว: address เช่น "99 ถ.สุขุมวิท กรุงเทพฯ 10110"
-         (แยก 'จังหวัด รหัสไปรษณีย์' จากท้ายข้อความให้ — ตรงกับที่หน้ารายการลูกค้าแสดง)
-    old = แถวที่อยู่เดิมของลูกค้า (ใช้ตอนแก้ไข) เอาไว้เทียบว่าช่องไหน "เปลี่ยนจริง"
-    คืน dict (line_1, line_2, province, postal_code, address_type)
-    หรือ None = ไม่ต้องแตะที่อยู่ (ไม่ได้กรอก / ไม่ได้เปลี่ยนจากเดิม จึงไม่ต้องบันทึกซ้ำ)"""
+    """อ่านที่อยู่จาก data (แยกช่อง หรือช่อง 'address' ช่องเดียว) คืน dict ที่จะบันทึก / None = ไม่ต้องแก้"""
     address_type = _text(data.get("address_type"))
     line_1 = _text(data.get("line_1"))
     province = _text(data.get("province"))
@@ -177,12 +166,7 @@ def _address_from(data, old=None):
 
 
 def search_customers(filters):
-    # JOIN ตาราง address เพื่อดึง line_1, province, postal_code ออกมาแสดงเป็น 'ที่อยู่'
-    # (JOIN เฉพาะ "ที่อยู่แรก" ของลูกค้า — ลูกค้าที่มีหลายที่อยู่จะได้ไม่ขึ้นซ้ำหลายแถว)
-    # ★ รายการลูกค้าต้องใช้ชื่อคอลัมน์ภาษาอังกฤษ (cust_id, name, email, address, tier) ห้ามตั้ง alias ภาษาไทย
-    #   เพราะหน้าเว็บอ่านค่าตามชื่อคีย์เหล่านี้ — cust_id ใช้สร้าง URL ตอนกดแก้ไข/ลบ (/api/customers/<cust_id>)
-    #   และ name เป็นข้อความในช่องเลือก "ลูกค้า" ของฟอร์มออเดอร์ (ดึงรายชื่อจาก /api/customers)
-    #   ถ้าหาคีย์ไม่เจอ หน้าเว็บจะขึ้นเป็น undefined
+    """ค้นหาลูกค้า (ชื่อ/อีเมล/ที่อยู่/ระดับ) — ห้ามตั้ง alias ไทย เพราะหน้าเว็บอ่านตามชื่อคอลัมน์"""
     sql = f"""
         SELECT c.cust_id,
                c.name,
@@ -218,7 +202,7 @@ def search_customers(filters):
 
 
 def get_customer(cust_id):
-    """ข้อมูลลูกค้า + ที่อยู่แรก  (address = ข้อความรวม 'ที่อยู่ จังหวัด รหัสไปรษณีย์' ใช้เติมช่องในฟอร์ม)"""
+    """ดึงลูกค้า 1 คนพร้อมที่อยู่แรก (address = ข้อความรวม ใช้เติมฟอร์มแก้ไข)"""
     sql = f"""
         SELECT c.*, a.address_id, a.address_type, a.line_1, a.line_2, a.province, a.postal_code,
                {_ADDRESS_TEXT} AS address
@@ -293,14 +277,13 @@ def update_customer(cust_id, data):
 
 
 def delete_customer(cust_id):
-    # address ถูกลบตามอัตโนมัติ (ON DELETE CASCADE) แต่ถ้าลูกค้ามีออเดอร์/รีวิวอยู่ จะลบไม่ได้ (FK)
+    """ลบลูกค้า (ที่อยู่ลบตามอัตโนมัติ แต่ถ้ามีออเดอร์/รีวิวอยู่จะลบไม่ได้)"""
     return run_command("DELETE FROM customer WHERE cust_id=%s", (cust_id,))
 
 
 # ---------- สินค้า (product) ----------
 def _category_id(value):
-    """product.category เป็น FK → primary_category
-    รับได้ทั้งรหัส (เช่น 5) หรือชื่อ (เช่น 'Electronics') แล้วคืนรหัสหมวดหมู่ (ว่าง → None)"""
+    """แปลงหมวดหมู่ที่ส่งมา (รหัสหรือชื่อ) เป็น category_id — ว่าง → None, ไม่พบชื่อ → error"""
     value = _text(value)
     if value is None:
         return None
@@ -313,10 +296,7 @@ def _category_id(value):
 
 
 def search_products(filters):
-    # JOIN primary_category เพื่อแสดง 'ชื่อ' หมวดหมู่ (ในตาราง product เก็บเป็นรหัส)
-    # ★ คอลัมน์รหัส (product_id) ต้องใช้ชื่อจริงของคอลัมน์ ห้ามตั้ง alias ภาษาไทย
-    #   เพราะหน้าเว็บอ่านค่านี้ไปสร้าง URL ตอนกดแก้ไข/ลบ (/api/products/<product_id>)
-    #   ถ้าหาไม่เจอจะได้ /api/products/undefined (404)
+    """ค้นหาสินค้า (ชื่อ/หมวดหมู่/ช่วงราคา) — product_id ห้ามตั้ง alias ไทย (หน้าเว็บใช้สร้าง URL)"""
     sql = """
         SELECT p.product_id, p.name AS 'ชื่อสินค้า',
                pc.name AS 'หมวดหมู่', p.price AS 'ราคา', p.stock AS 'จำนวนคงเหลือ'
@@ -349,7 +329,7 @@ def search_products(filters):
 
 
 def get_product(product_id):
-    # category = รหัสหมวดหมู่ (เหมือนในตาราง), category_name = ชื่อหมวดหมู่
+    """ดึงสินค้า 1 รายการ (category = รหัสหมวดหมู่, category_name = ชื่อหมวดหมู่)"""
     sql = """
         SELECT p.*, pc.name AS category_name
         FROM product p
@@ -361,6 +341,7 @@ def get_product(product_id):
 
 
 def create_product(data):
+    """เพิ่มสินค้าใหม่ (หมวดหมู่ใส่เป็นรหัสหรือชื่อก็ได้)"""
     name = _text(data.get("name"))
     if not name:
         raise ValueError("กรุณากรอกชื่อสินค้า")
@@ -371,6 +352,7 @@ def create_product(data):
 
 
 def update_product(product_id, data):
+    """แก้ไขสินค้าเฉพาะช่องที่ส่งมา"""
     data = dict(data)
     if "category" in data:
         data["category"] = _category_id(data["category"])
@@ -382,15 +364,13 @@ def update_product(product_id, data):
 
 
 def delete_product(product_id):
-    # สินค้าที่เคยถูกสั่งซื้อ (มีใน order_line) จะลบไม่ได้ (FK) — ถ้าไม่อยากให้ขายอีก ให้ตั้ง is_active = FALSE แทน
+    """ลบสินค้า (ถ้าเคยถูกสั่งซื้อแล้วจะลบไม่ได้ — ให้ตั้ง is_active = FALSE แทน)"""
     return run_command("DELETE FROM product WHERE product_id=%s", (product_id,))
 
 
 # ---------- ออเดอร์ (shop_order) ----------
 def search_orders(filters):
-    # ★ คอลัมน์รหัส (order_id) ต้องใช้ชื่อจริงของคอลัมน์ ห้ามตั้ง alias ภาษาไทย
-    #   เพราะหน้าเว็บอ่านค่านี้ไปสร้าง URL ตอนกดแก้ไข/ลบ (/api/orders/<order_id>)
-    #   ถ้าหาไม่เจอจะได้ /api/orders/undefined (404)
+    """ค้นหาออเดอร์ (รหัสลูกค้า/สถานะ/ช่วงวันที่) — order_id ห้ามตั้ง alias ไทย (หน้าเว็บใช้สร้าง URL)"""
     sql = "SELECT order_id, cust_id as 'รหัสลูกค้า', " \
           "order_date as 'วันที่สั่งซื้อ', status as 'สถานะ', total as 'ยอดสุทธิ' " \
           "FROM shop_order WHERE 1=1"
@@ -416,15 +396,14 @@ def search_orders(filters):
 
 
 def get_order(order_id):
+    """ดึงออเดอร์ 1 รายการ"""
     sql = "SELECT * FROM shop_order WHERE order_id = %s"
     rows = run_query(sql, (order_id,))
     return rows[0] if rows else None
 
 
 def check_can_ship(order_id):
-    """ตรวจว่าออเดอร์จัดส่งได้ไหม → คืน (True/False, ข้อความ)
-    เงื่อนไข: มีออเดอร์นี้ / สถานะต้องเป็น pending / มีรายการสินค้าอย่างน้อย 1 รายการ /
-              สินค้าทุกรายการยังเปิดขาย (is_active) และ stock พอตามจำนวนที่สั่ง"""
+    """ตรวจว่าออเดอร์จัดส่งได้ไหม (pending, มีสินค้า, เปิดขาย, stock พอ) → คืน (True/False, ข้อความ)"""
     rows = run_query(
         "SELECT status FROM shop_order WHERE order_id = %s", (order_id,))
     if not rows:
@@ -451,15 +430,13 @@ def check_can_ship(order_id):
 
 
 def create_order(data):
-    # sub_total / discount / total เป็น NOT NULL และไม่มีค่า default → ต้องส่งค่าเสมอ
-    # (ไม่ได้กรอกมา = 0, ออเดอร์ใหม่ยังไม่มีรายการสินค้า) / ไม่กรอกวันที่ = วันนี้ / ไม่กรอกสถานะ = pending
-    # ไม่กรอกที่อยู่จัดส่ง = ใช้ที่อยู่แรกของลูกค้าคนนั้น
+    """เพิ่มออเดอร์ใหม่ (ไม่กรอก: วันที่ = วันนี้, สถานะ = pending, ที่อยู่ = ที่อยู่แรกของลูกค้า)"""
     cust_id = blank_to_none(data.get("cust_id"))
     if cust_id is None:
         raise ValueError("กรุณาระบุรหัสลูกค้า")
     sub_total = _money(data.get("sub_total"))
     discount = _money(data.get("discount"))
-    total = _money(data.get("total"), default=sub_total - discount)
+    total = _money(data.get("total"), default=sub_total - discount) # type: ignore
 
     sql = """
         INSERT INTO shop_order (cust_id, order_date, status, address, sub_total, discount, total)
@@ -473,15 +450,13 @@ def create_order(data):
 
 
 def update_order(order_id, data):
+    """แก้ไขออเดอร์เฉพาะช่องที่ส่งมา (เปลี่ยนเป็น shipped ต้องผ่าน check_can_ship ก่อน)"""
     current = get_order(order_id)
     if not current:
         raise ValueError(f"ไม่พบออเดอร์รหัส {order_id}")
-    if not isinstance(current, dict):
-        raise ValueError(f"ข้อมูลออเดอร์รหัส {order_id} ไม่ถูกต้อง")
 
     # เปลี่ยนสถานะเป็น shipped ต้องผ่านการตรวจสต็อกก่อน (ดู check_can_ship)
-    current_status = current.get("status")
-    if blank_to_none(data.get("status")) == "shipped" and current_status != "shipped":
+    if blank_to_none(data.get("status")) == "shipped" and current["status"] != "shipped": # type: ignore
         ok, msg = check_can_ship(order_id)
         if not ok:
             raise ValueError(msg)
@@ -495,8 +470,7 @@ def update_order(order_id, data):
 
 
 def delete_order(order_id):
-    # รายการสินค้า (order_line) เป็นส่วนหนึ่งของออเดอร์ → ลบพร้อมกันใน transaction เดียว
-    # แต่ถ้าออเดอร์มีการชำระเงิน/รีวิวอยู่ จะลบไม่ได้ (FK) และ rollback ทั้งหมด
+    """ลบออเดอร์พร้อมรายการสินค้าใน transaction เดียว (ถ้ามีการชำระเงิน/รีวิวจะลบไม่ได้)"""
     def work(cur):
         cur.execute("DELETE FROM order_line WHERE order_id=%s", (order_id,))
         cur.execute("DELETE FROM shop_order WHERE order_id=%s", (order_id,))
@@ -510,6 +484,7 @@ def delete_order(order_id):
 #  ★ ORDER BY ชื่อ alias ต้องครอบด้วย backtick (`ชื่อ`) ห้ามใช้ 'ชื่อ' เพราะ MySQL จะมองเป็นข้อความคงที่ (ไม่เรียงจริง)
 # ============================================================
 def report_summary():
+    """สรุปตัวเลขรวมของร้าน (จำนวนลูกค้า/สินค้า/ออเดอร์/รีวิว ยอดขาย คะแนนเฉลี่ย) — คืน 1 แถว"""
     sql = """SELECT
           (SELECT COUNT(*) FROM customer) AS 'ลูกค้า',
           (SELECT COUNT(*) FROM product) AS 'สินค้า',
@@ -522,8 +497,7 @@ def report_summary():
 
 
 def report_best_selling():
-    """📈 สินค้าขายดี (Best Sellers)
-    คำใบ้: JOIN order_line→product, GROUP BY product, SUM(qty), ORDER BY DESC, LIMIT 5"""
+    """สินค้าขายดี 5 อันดับแรก (เรียงตามจำนวนที่ขายได้)"""
     sql = """
     SELECT p.product_id as 'รหัสสินค้า', p.name as 'ชื่อสินค้า', pc.name as 'หมวดหมู่',
            SUM(ol.qty) AS 'จำนวนที่ขาย',
@@ -539,7 +513,7 @@ def report_best_selling():
 
 
 def report_customers_above_avg():
-    """🏅 ลูกค้าที่ซื้อมากกว่าค่าเฉลี่ย (Above Average)"""
+    """ลูกค้าที่ยอดซื้อรวมสูงกว่าค่าเฉลี่ย (เทียบกับลูกค้าที่เคยสั่งซื้อ) เรียงจากมากไปน้อย"""
     sql = """
     SELECT c.cust_id as 'รหัสลูกค้า', c.name as 'ชื่อลูกค้า',
            SUM(ol.qty * ol.unit_price) AS 'ยอดซื้อรวม'
@@ -565,8 +539,7 @@ def report_customers_above_avg():
 
 
 def report_high_rated():
-    """⭐ สินค้าคะแนนรีวิวเฉลี่ย ≥ 4 (HAVING)
-    (review ผูกกับ 'ออเดอร์' → คะแนนของออเดอร์นั้นนับให้ทุกสินค้าในออเดอร์ผ่าน order_line)"""
+    """สินค้าที่คะแนนรีวิวเฉลี่ย ≥ 4 (รีวิวผูกกับออเดอร์ จึงนับให้ทุกสินค้าในออเดอร์นั้น)"""
     sql = """
     SELECT p.product_id as 'รหัสสินค้า', p.name as 'ชื่อสินค้า',
            ROUND(AVG(r.rating), 1) AS 'คะแนนเฉลี่ย',
@@ -584,7 +557,7 @@ def report_high_rated():
 
 
 def summary_best_selling(filters):
-    # range: 1d, 7d, 1m, 6m, 1y
+    """สินค้าขายดี 5 อันดับ ตามช่วงเวลา filters['range'] = 1d, 7d, 1m, 6m, 1y (ไม่ระบุ = ทั้งหมด)"""
     range_val = filters.get("range") if isinstance(filters, dict) else filters
 
     # แมปช่วงเวลาเป็น SQL INTERVAL
