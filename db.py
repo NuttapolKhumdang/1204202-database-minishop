@@ -173,7 +173,7 @@ def search_customers(filters):
                c.email,
                {_ADDRESS_TEXT} AS address,
                c.tier
-        FROM customer c
+        FROM vw_customer_detail c
         LEFT JOIN address a ON {_FIRST_ADDRESS}
         WHERE 1=1
     """
@@ -371,9 +371,9 @@ def delete_product(product_id):
 # ---------- ออเดอร์ (shop_order) ----------
 def search_orders(filters):
     """ค้นหาออเดอร์ (รหัสลูกค้า/สถานะ/ช่วงวันที่) — order_id ห้ามตั้ง alias ไทย (หน้าเว็บใช้สร้าง URL)"""
-    sql = "SELECT order_id, cust_id as 'รหัสลูกค้า', " \
+    sql = "SELECT order_id, cust_id as 'รหัสลูกค้า', name as 'ชื่อลูกค้า', " \
           "order_date as 'วันที่สั่งซื้อ', status as 'สถานะ', total as 'ยอดสุทธิ' " \
-          "FROM shop_order WHERE 1=1"
+          "FROM vw_order_detail WHERE 1=1"
     params = []
     if filters.get("cust_id"):
         sql += " AND cust_id = %s"

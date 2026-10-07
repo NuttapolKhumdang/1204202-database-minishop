@@ -1,48 +1,48 @@
 
 -- TODO: INSERT ข้อมูลตัวอย่างทุกตาราง
 
-INSERT INTO customer (name, email, gender, birthdate, tier)
+INSERT INTO customer (name, email, gender, birthdate)
 VALUES
-('พีรพัฒน์ ดาตู', 'sriithnaewthysumachyaa@outlook.com', 'ชาย', '1959-12-18', 'vip'),
-('พิมพ์พิชญา ไทนิยม', 'ophaasbuybamrung@yahoo.com', 'หญิง', '1946-07-07', 'gold'),
-('ภูวัน บุณยะภาชน์', 'thiphrdaaephiiyyaa@ymail.com', 'ชาย', '1928-10-07', 'vip'),
-('สุรธัช ทองปากน้ำ', 'shasmniidamrihchb@gmail.com', 'ชาย', '2025-01-25', 'normal'),
-('จิรวิทย์ ถนัดอักษร', 'saaraphanthenchaa@outlook.com', 'ชาย', '1957-10-12', 'silver'),
-('สุชิน ถนอมพลกรัง', 'rphin71@icloud.com', null, '1925-04-17', 'normal'),
-('ผดุงพล วาทา', 'tthnmphlkrang@kon.in.th', null, '2022-03-08', 'gold'),
-('ธีรลักษณ์ นักรบ', 'suphaaphr92@gmail.com', 'ชาย', '1917-03-21', 'silver'),
-('เทพนารี ทีฆะ', 'mnilsuwrrn@ymail.com', null, '2009-10-30', 'gold'),
-('วรดาพร ดวงทับทิม', 'oythikaar46@ymail.com', null, '1942-05-14', 'silver'),
-('ศิรณัฐ จันอ้น', 'nathphlnamthiphy@outlook.com', 'ชาย', '2020-09-27', 'normal'),
-('เอกชัย นิยมธรรม', 'nphthnadedinkhaaw@protonmail.com', null, '2019-03-04', 'normal'),
-('ณัฐญาดา ดาวอร่าม', 'itansthity@gmail.com', null, '1990-08-02', 'vip'),
-('ศศินา ร่มธิติรัตน์', 'echlimrath30@yahoo.com', null, '1985-04-02', 'gold'),
-('ธีรวุฒิ ดิสกะประกาย', 'phchrphrn41@outlook.com', null, '1930-04-18', 'vip'),
-('ดิลก ถนัดอาวุธ', 'tangephaasmhmaay@outlook.com', 'ชาย', '1928-11-08', 'gold'),
-('เฉลิมรัตน์ ดำริห์ชอบ', 'phuuwan65@outlook.com', null, '1968-02-03', 'silver'),
-('สุทธิพจน์ พีระเพ็ญกุล', 'raanii35@icloud.com', null, '2007-06-29', 'silver'),
-('สินสมุทร ตั้งเผ่า', 'phrebyyaa64@yahoo.com', 'ชาย', '1922-07-04', 'gold'),
-('วิพุธ ดาตู', 'wbuysl@hotmail.com', null, '1944-01-23', 'silver'),
-('สราญจิตต์ ทวนทอง', 'odaawraam@icloud.com', null, '1954-09-22', 'silver'),
-('พรพิไล พงศ์ฉบับนภา', 'cchakrchay11@icloud.com', 'หญิง', '2006-04-12', 'vip'),
-('ประไพพักตร์ ยาปะโลหิต', 'pphaawrinthr40@kon.in.th', 'หญิง', '1926-03-30', 'normal'),
-('วรนาฎ ศรทอง', 'eksraahmphikul@outlook.com', 'หญิง', '1921-01-22', 'vip'),
-('นิวิลดาน นิละทัต', 'wrnaad70@icloud.com', null, '2016-01-25', 'silver'),
-('รอกีเย๊าะ ขอหมั่นกลาง', 'thrrmthinnaaphimphsutaa@icloud.com', 'หญิง', '1912-11-24', 'normal'),
-('พรชนก ถนัดหัตถกรรม', 'nathyaadaanabenuuengn@outlook.com', 'หญิง', '1937-03-31', 'normal'),
-('นิติยา ตวันเยี่ยม', 'ulayphraetkul@gmail.com', null, '1948-04-19', 'normal'),
-('โสภา ธรรมเมธา', 'praphathrsrnphuuphakdii@gmail.com', null, '2005-09-07', 'gold'),
-('ปิยบุตร ธรรมนิยม', 'ophiiraephykul@yahoo.com', 'ชาย', '1962-08-18', 'vip'),
-('นิรุตต์ เลิศกิ่ง', 'nirahaaniiphiiraphngsphanth@outlook.com', 'ชาย', '1918-07-21', 'silver'),
-('ปัตถพงษ์ ชำนาญวาด', 'sirithnadphimphkaar@hotmail.com', null, '1941-06-17', 'vip'),
-('ชัฎชา ฉัตรอภิเที่ยงค่ำ', 'suthaawii48@kon.in.th', 'หญิง', '1988-07-09', 'vip'),
-('มาซีเตาะ พงศ์ฉบับนภา', 'chidchnk57@hotmail.com', null, '2004-06-19', 'gold'),
-('ทรรศนชัย ธรรมนิยม', 'nilsuwrrnsmhmaay@protonmail.com', null, '1990-06-11', 'normal'),
-('วรรณรัตน์ นาคะนคร', 'siwawrewthsuphnunaay@outlook.com', 'หญิง', '1994-06-30', 'gold'),
-('นิชนันท์ ถนัดรักษา', 'chrinthrthiphyaethnthng@protonmail.com', 'ชาย', '1948-05-15', 'gold'),
-('นิรุตต์ ดำริห์ชอบ', 'emsaa99@icloud.com', null, '1945-05-04', 'vip'),
-('วรรณชนะชัย ดำริห์ชอบ', 'thiirisraaaethmthn@kon.in.th', 'ชาย', '1951-02-28', 'gold'),
-('อัญพัชร์ เช้าวันดี', 'thmpadaaphasraa@hotmail.com', 'หญิง', '2017-05-08', 'silver');
+('พีรพัฒน์ ดาตู', 'sriithnaewthysumachyaa@outlook.com', 'ชาย', '1959-12-18'),
+('พิมพ์พิชญา ไทนิยม', 'ophaasbuybamrung@yahoo.com', 'หญิง', '1946-07-07'),
+('ภูวัน บุณยะภาชน์', 'thiphrdaaephiiyyaa@ymail.com', 'ชาย', '1928-10-07'),
+('สุรธัช ทองปากน้ำ', 'shasmniidamrihchb@gmail.com', 'ชาย', '2025-01-25'),
+('จิรวิทย์ ถนัดอักษร', 'saaraphanthenchaa@outlook.com', 'ชาย', '1957-10-12'),
+('สุชิน ถนอมพลกรัง', 'rphin71@icloud.com', null, '1925-04-17'),
+('ผดุงพล วาทา', 'tthnmphlkrang@kon.in.th', null, '2022-03-08'),
+('ธีรลักษณ์ นักรบ', 'suphaaphr92@gmail.com', 'ชาย', '1917-03-21'),
+('เทพนารี ทีฆะ', 'mnilsuwrrn@ymail.com', null, '2009-10-30'),
+('วรดาพร ดวงทับทิม', 'oythikaar46@ymail.com', null, '1942-05-14'),
+('ศิรณัฐ จันอ้น', 'nathphlnamthiphy@outlook.com', 'ชาย', '2020-09-27'),
+('เอกชัย นิยมธรรม', 'nphthnadedinkhaaw@protonmail.com', null, '2019-03-04'),
+('ณัฐญาดา ดาวอร่าม', 'itansthity@gmail.com', null, '1990-08-02'),
+('ศศินา ร่มธิติรัตน์', 'echlimrath30@yahoo.com', null, '1985-04-02'),
+('ธีรวุฒิ ดิสกะประกาย', 'phchrphrn41@outlook.com', null, '1930-04-18'),
+('ดิลก ถนัดอาวุธ', 'tangephaasmhmaay@outlook.com', 'ชาย', '1928-11-08'),
+('เฉลิมรัตน์ ดำริห์ชอบ', 'phuuwan65@outlook.com', null, '1968-02-03'),
+('สุทธิพจน์ พีระเพ็ญกุล', 'raanii35@icloud.com', null, '2007-06-29'),
+('สินสมุทร ตั้งเผ่า', 'phrebyyaa64@yahoo.com', 'ชาย', '1922-07-04'),
+('วิพุธ ดาตู', 'wbuysl@hotmail.com', null, '1944-01-23'),
+('สราญจิตต์ ทวนทอง', 'odaawraam@icloud.com', null, '1954-09-22'),
+('พรพิไล พงศ์ฉบับนภา', 'cchakrchay11@icloud.com', 'หญิง', '2006-04-12'),
+('ประไพพักตร์ ยาปะโลหิต', 'pphaawrinthr40@kon.in.th', 'หญิง', '1926-03-30'),
+('วรนาฎ ศรทอง', 'eksraahmphikul@outlook.com', 'หญิง', '1921-01-22'),
+('นิวิลดาน นิละทัต', 'wrnaad70@icloud.com', null, '2016-01-25'),
+('รอกีเย๊าะ ขอหมั่นกลาง', 'thrrmthinnaaphimphsutaa@icloud.com', 'หญิง', '1912-11-24'),
+('พรชนก ถนัดหัตถกรรม', 'nathyaadaanabenuuengn@outlook.com', 'หญิง', '1937-03-31'),
+('นิติยา ตวันเยี่ยม', 'ulayphraetkul@gmail.com', null, '1948-04-19'),
+('โสภา ธรรมเมธา', 'praphathrsrnphuuphakdii@gmail.com', null, '2005-09-07'),
+('ปิยบุตร ธรรมนิยม', 'ophiiraephykul@yahoo.com', 'ชาย', '1962-08-18'),
+('นิรุตต์ เลิศกิ่ง', 'nirahaaniiphiiraphngsphanth@outlook.com', 'ชาย', '1918-07-21'),
+('ปัตถพงษ์ ชำนาญวาด', 'sirithnadphimphkaar@hotmail.com', null, '1941-06-17'),
+('ชัฎชา ฉัตรอภิเที่ยงค่ำ', 'suthaawii48@kon.in.th', 'หญิง', '1988-07-09'),
+('มาซีเตาะ พงศ์ฉบับนภา', 'chidchnk57@hotmail.com', null, '2004-06-19'),
+('ทรรศนชัย ธรรมนิยม', 'nilsuwrrnsmhmaay@protonmail.com', null, '1990-06-11'),
+('วรรณรัตน์ นาคะนคร', 'siwawrewthsuphnunaay@outlook.com', 'หญิง', '1994-06-30'),
+('นิชนันท์ ถนัดรักษา', 'chrinthrthiphyaethnthng@protonmail.com', 'ชาย', '1948-05-15'),
+('นิรุตต์ ดำริห์ชอบ', 'emsaa99@icloud.com', null, '1945-05-04'),
+('วรรณชนะชัย ดำริห์ชอบ', 'thiirisraaaethmthn@kon.in.th', 'ชาย', '1951-02-28'),
+('อัญพัชร์ เช้าวันดี', 'thmpadaaphasraa@hotmail.com', 'หญิง', '2017-05-08');
 
 INSERT INTO address (address_type, cust_id, line_1, province, postal_code)
 VALUES
@@ -240,6 +240,50 @@ VALUES
 (39, 7, 4, 1),		(39, 42, 3, 1),		(39, 30, 4, 1),		(39, 9, 6, 1),		(39, 23, 6, 1),
 (39, 25, 4, 1),		(39, 45, 8, 1);
 
+
+INSERT INTO review (cust_id, order_id, rating, comment)
+VALUES
+(32, 1, 3, 'Innovative coherent benchmark'),
+(4, 2, 1, 'Business-focused didactic forecast'),
+(17, 3, 4, 'Stand-alone intermediate middleware'),
+(26, 4, 2, 'Public-key 24hour firmware'),
+(15, 5, 4, 'Total bi-directional workforce'),
+(18, 6, 4, 'Exclusive heuristic website'),
+(15, 7, 1, 'Organic scalable budgetary management'),
+(13, 8, 2, 'Organized hybrid artificial intelligence'),
+(4, 9, 1, 'Monitored systematic neural-net'),
+(22, 10, 3, 'Front-line static analyzer'),
+(4, 11, 1, 'Decentralized disintermediate standardization'),
+(37, 12, 1, 'Streamlined coherent migration'),
+(11, 13, 1, 'Business-focused tertiary model'),
+(2, 14, 4, 'Diverse national moderator'),
+(17, 15, 3, 'Re-contextualized multi-state core'),
+(34, 16, 2, 'Total mobile concept'),
+(30, 17, 3, 'Organized even-keeled Graphical User Interface'),
+(25, 18, 4, 'Secured client-driven task-force'),
+(33, 19, 2, 'Secured multi-tasking workforce'),
+(1, 20, 2, 'Quality-focused grid-enabled service-desk'),
+(39, 21, 4, 'Multi-channeled heuristic info-mediaries'),
+(7, 22, 4, 'Organic executive knowledge user'),
+(36, 23, 2, 'Vision-oriented 5thgeneration framework'),
+(18, 24, 2, 'Pre-emptive contextually-based Local Area Network'),
+(14, 25, 3, 'Balanced 24hour Local Area Network'),
+(2, 26, 3, 'Operative modular matrices'),
+(32, 27, 1, 'Profit-focused stable website'),
+(24, 28, 3, 'Business-focused maximized methodology'),
+(14, 29, 1, 'Proactive executive forecast'),
+(10, 30, 3, 'Realigned 24/7 standardization'),
+(17, 31, 4, 'Customer-focused multi-state function'),
+(11, 32, 2, 'Multi-lateral national secured line'),
+(29, 33, 3, 'Pre-emptive dynamic knowledgebase'),
+(38, 34, 1, 'Assimilated logistical archive'),
+(23, 35, 1, 'Total systematic definition'),
+(21, 36, 1, 'Synergistic next generation contingency'),
+(23, 37, 1, 'Stand-alone grid-enabled alliance'),
+(26, 38, 1, 'Robust bifurcated leverage'),
+(32, 39, 1, 'Monitored logistical intranet'),
+(6, 40, 2, 'Reverse-engineered grid-enabled instruction set');
+
 -- Update order_line unit_price
 
 UPDATE  order_line
@@ -250,15 +294,6 @@ UPDATE  shop_order s
 JOIN    order_line o ON o.order_id = s.order_id
 SET     s.sub_total = s.sub_total + o.qty * o.unit_price;
 
-UPDATE  shop_order s
-JOIN    customer c ON c.cust_id = s.cust_id
-SET     s.discount = s.sub_total * ( 
-                    CASE    WHEN c.tier = 'normal' AND s.sub_total >= 1000 THEN 0.05
-                            WHEN c.tier = 'silver' AND s.sub_total >= 1000 THEN 0.10
-                            WHEN c.tier = 'gold'   AND s.sub_total >= 500  THEN 0.10
-                            WHEN c.tier = 'vip'                            THEN 0.15
-                    ELSE 0 END
-                    );
 
 UPDATE  shop_order s
 SET     s.total = s.sub_total - s.discount;
