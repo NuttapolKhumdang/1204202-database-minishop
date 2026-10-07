@@ -12,14 +12,3 @@ SELECT  cust_id
         END AS tier
 FROM    customer c
 ;
-
-CREATE OR REPLACE VIEW vw_order_detail AS
-SELECT  o.order_id
-    ,   c.cust_id
-    ,   c.name
-    ,   o.order_date
-    ,   o.status
-    ,   o.total
-FROM    shop_order o
-JOIN    customer c      ON c.cust_id = o.cust_id
-;
