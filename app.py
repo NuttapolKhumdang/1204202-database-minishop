@@ -135,6 +135,11 @@ def report_run(key):
             return safe(fn)
     return jsonify({"ok": False, "error": f"ไม่พบรายงาน '{key}' ใน db.REPORTS"}), 404
 
+@app.route("/api/summary/summary")
+def summary_summary():
+    filters = {k: v for k, v in request.args.items() if v}
+    return safe(db.summary_summary, filters)
+
 @app.route("/api/summary")
 def summary_list():
     """รายชื่อรายงานทั้งหมด (อ่านจาก db.REPORTS) ให้หน้าเว็บสร้างกล่องรายงาน"""

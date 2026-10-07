@@ -564,18 +564,43 @@ def report_high_rated():
     return run_query(sql)
 
 
+interval_map = {
+    "1d": "1 DAY",
+    "7d": "7 DAY",
+    "1m": "1 MONTH",
+    "6m": "6 MONTH",
+    "1y": "1 YEAR",
+    "all": "100 YEAR"
+}
+
+def summary_summary(filters):
+    range_val = filters.get("range") if isinstance(filters, dict) else filters
+
+    interval = None
+    if range_val in interval_map:
+        interval = interval_map[range_val]
+
+    """สรุปตัวเลขรวมของร้าน (จำนวนลูกค้า/สินค้า/ออเดอร์/รีวิว ยอดขาย คะแนนเฉลี่ย) — คืน 1 แถว"""
+    sql = f"""SELECT
+          (SELECT COUNT(*) FROM customer)       AS 'ลูกค้า',
+          (SELECT COUNT(*) FROM product)        AS 'สินค้า',
+          (SELECT COUNT(*) FROM shop_order)     AS 'ออเดอร์',
+          (SELECT COUNT(*) FROM review
+            WHERE review_date >= CURRENT_DATE - INTERVAL {interval}
+          )         AS 'รีวิว',
+          ( SELECT SUM(total) FROM shop_order
+            WHERE order_date >= CURRENT_DATE - INTERVAL {interval}
+           ) AS 'ยอดขายรวม (บาท)',
+          (SELECT ROUND(AVG(rating), 2) FROM review
+            WHERE review_date >= CURRENT_DATE - INTERVAL {interval}
+          ) AS 'คะแนนรีวิวเฉลี่ย'
+          """
+    return run_query(sql)[0]
+
+
 def summary_best_selling(filters):
     """สินค้าขายดี 5 อันดับ ตามช่วงเวลา filters['range'] = 1d, 7d, 1m, 6m, 1y (ไม่ระบุ = ทั้งหมด)"""
     range_val = filters.get("range") if isinstance(filters, dict) else filters
-
-    # แมปช่วงเวลาเป็น SQL INTERVAL
-    interval_map = {
-        "1d": "1 DAY",
-        "7d": "7 DAY",
-        "1m": "1 MONTH",
-        "6m": "6 MONTH",
-        "1y": "1 YEAR"
-    }
 
     sql = """
     SELECT p.product_id AS 'รหัสสินค้า',
@@ -605,15 +630,6 @@ def summary_best_selling(filters):
 def summary_customers_above_avg(filters):
     # range: 1d, 7d, 1m, 6m, 1y
     range_val = filters.get("range") if isinstance(filters, dict) else filters
-
-    # แมปช่วงเวลาเป็น SQL INTERVAL
-    interval_map = {
-        "1d": "1 DAY",
-        "7d": "7 DAY",
-        "1m": "1 MONTH",
-        "6m": "6 MONTH",
-        "1y": "1 YEAR"
-    }
 
     interval = None
     if range_val in interval_map:
@@ -645,40 +661,6 @@ def summary_customers_above_avg(filters):
 
     return run_query(sql)
 
-
-def summary_high_rated(filters):
-    range_val = filters.get("range") if isinstance(filters, dict) else filters
-
-    # แมปช่วงเวลาเป็น SQL INTERVAL
-    interval_map = {
-        "1d": "1 DAY",
-        "7d": "7 DAY",
-        "1m": "1 MONTH",
-        "6m": "6 MONTH",
-        "1y": "1 YEAR"
-    }
-
-    interval = None
-    if range_val in interval_map:
-        interval = interval_map[range_val]
-
-    sql = f"""
-    SELECT p.product_id as 'รหัสสินค้า', p.name as 'ชื่อสินค้า',
-           ROUND(AVG(r.rating), 1) AS 'คะแนนเฉลี่ย',
-           COUNT(r.rating) AS 'จำนวนรีวิว'
-    FROM review AS r
-    INNER JOIN order_line AS ol
-        ON r.order_id = ol.order_id
-    INNER JOIN product AS p
-        ON ol.product_id = p.product_id
-    WHERE r.review_date >= CURRENT_DATE - INTERVAL {interval}
-    GROUP BY p.product_id, p.name
-    HAVING AVG(r.rating) >= 4
-    ORDER BY `คะแนนเฉลี่ย` DESC
-    """
-
-    return run_query(sql)
-
 # ============================================================
 #  รายการรายงานที่แสดงบนหน้า /report  (เรียงตามลำดับที่แสดง)
 #  ★ วิธีเพิ่มรายงานใหม่ (ไม่ต้องแก้ไฟล์อื่น):
@@ -698,5 +680,4 @@ SUMMARY = [
     ("best-selling",  " สินค้าขายดี (Best Sellers) 📈", summary_best_selling),
     ("top-customers", " ลูกค้าที่ซื้อมากกว่าค่าเฉลี่ย (Above Average) 🏅",
          summary_customers_above_avg),
-        ("high-rated",    "⭐ สินค้าคะแนนรีวิวเฉลี่ย ≥ 4 (HAVING)", summary_high_rated)
 ]

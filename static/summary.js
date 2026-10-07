@@ -16,7 +16,19 @@ function fillTable(tableSel, statusSel, r) {
     tbody.innerHTML = rows.map(row => "<tr>" + cols.map(c => "<td>" + (row[c] ?? "—") + "</td>").join("") + "</tr>").join("");
 }
 
+async function loadSummary() {
+    // report_summary() คืน dict {ชื่อการ์ด: ตัวเลข} → 1 คีย์ = 1 การ์ด
+    const filter = new URLSearchParams(window.location.search);
+
+    const r = await api("/api/summary/summary" + "?range=" + (filter.get('range') || '1d'));
+    const box = $("#summary");
+    if (!r.ok) { box.innerHTML = '<div style="grid-column:1/-1" class="status ' + (r.todo ? "todo" : "err") + '">' + (r.todo ? "🚧 " : "⚠️ ") + r.error + '</div>'; return; }
+    box.innerHTML = Object.entries(r.data || {}).map(([label, num]) =>
+        '<div class="metric"><div class="metric-num">' + (num ?? "—") + '</div><div class="metric-label">' + label + '</div></div>').join("");
+}
+
 async function loadAll() {
+    loadSummary();
     const list = await api("/api/summary");
     const filter = new URLSearchParams(window.location.search);
 

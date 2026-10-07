@@ -51,14 +51,10 @@ const ENTITIES = {
         "type": "text"
       },
       {
-        "key": "tier",
-        "label": "ระดับ",
-        "type": "select",
-        "options": [
-          "normal",
-          "vip"
-        ]
-      }
+        "key": "point",
+        "label": "คะแนน",
+        "type": "number"
+      },
     ]
   },
   "products": {

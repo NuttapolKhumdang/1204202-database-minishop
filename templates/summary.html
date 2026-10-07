@@ -26,9 +26,11 @@
           <option id="rangeOption" value="1m">1 เดือน</option>
           <option id="rangeOption" value="6m">6 เดือน</option>
           <option id="rangeOption" value="1y">1 ปี</option>
+          <option id="rangeOption" value="all">ทั้งหมด</option>
         </select>
       </section>
 
+      
       <script>
         const filter = new URLSearchParams(window.location.search);
         const rangeSelector = document.querySelector("#rangeSelector");
@@ -46,6 +48,8 @@
           window.location.replace("/summary?range=" + ev.target.value);
         });
       </script>
+
+      <section class="cards" id="summary"></section>
       <!-- กล่องรายงาน: สร้างจาก db.REPORTS อัตโนมัติ (เพิ่มรายงานที่ db.py ไม่ต้องแก้ไฟล์นี้) -->
       <div id="reports"></div>
     </main>

@@ -145,6 +145,6 @@ CREATE TABLE payment (            -- 1:M จาก shop_order
     amount          DECIMAL(9, 2),
     paid_date       DATE DEFAULT (CURRENT_DATE) NOT NULL,
 
-    CONSTRAINT chk_payment_method   CHECK (method IN ('cash', 'credit card', 'online')),
+    CONSTRAINT chk_payment_method   CHECK (method IN ('credit card', 'online banking')),
     CONSTRAINT fk_payment_order     FOREIGN KEY (order_id) REFERENCES shop_order (order_id)
 );
