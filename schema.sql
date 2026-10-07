@@ -148,3 +148,11 @@ CREATE TABLE payment (            -- 1:M จาก shop_order
     CONSTRAINT chk_payment_method   CHECK (method IN ('cash', 'credit card', 'online')),
     CONSTRAINT fk_payment_order     FOREIGN KEY (order_id) REFERENCES shop_order (order_id)
 );
+
+CREATE TABLE customer_point (
+    cust_id         INT,
+    point           INT NOT NULL DEFAULT 0,
+
+    CONSTRAINT chk_point CHECK (point >= 0),
+    CONSTRAINT fk_point_customer FOREIGN KEY (cust_id) REFERENCES customer (cust_id)
+);
