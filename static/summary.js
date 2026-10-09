@@ -20,7 +20,7 @@ async function loadSummary() {
     // report_summary() คืน dict {ชื่อการ์ด: ตัวเลข} → 1 คีย์ = 1 การ์ด
     const filter = new URLSearchParams(window.location.search);
 
-    const r = await api("/api/summary/summary" + "?range=" + (filter.get('range') || '1d'));
+    const r = await api("/api/summary/summary" + "?range=" + (filter.get('range') || 'all'));
     const box = $("#summary");
     if (!r.ok) { box.innerHTML = '<div style="grid-column:1/-1" class="status ' + (r.todo ? "todo" : "err") + '">' + (r.todo ? "🚧 " : "⚠️ ") + r.error + '</div>'; return; }
     box.innerHTML = Object.entries(r.data || {}).map(([label, num]) =>
@@ -39,7 +39,7 @@ async function loadAll() {
         sec.innerHTML = '<h3>' + rep.title + '</h3><div id="' + id + '_status" class="status"></div>' +
             '<div class="table-wrap"><table id="' + id + '_table"><thead></thead><tbody></tbody></table></div>';
         $("#reports").appendChild(sec);
-        fillTable("#" + id + "_table", "#" + id + "_status", await api("/api/summary/" + rep.key + "?range=" + (filter.get('range') || '1d')));
+        fillTable("#" + id + "_table", "#" + id + "_status", await api("/api/summary/" + rep.key + "?range=" + (filter.get('range') || 'all')));
     }
 }
 loadAll();
