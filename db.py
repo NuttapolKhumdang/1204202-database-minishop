@@ -570,39 +570,41 @@ interval_map = {
     "1m": "1 MONTH",
     "6m": "6 MONTH",
     "1y": "1 YEAR",
-    "all": "100 YEAR"
+    "all": None, 
 }
 
+def _since(column, range_val):
+    interval = interval_map.get(range_val)
+    if not interval:
+        return ""          # all / ไม่ระบุ / ไม่รู้จัก → ไม่กรอง
+    return f"AND {column} >= CURRENT_DATE - INTERVAL {interval}"
+
 def summary_summary(filters):
+    """สรุปตัวเลขรวมของร้านตามช่วงเวลา filters['range'] = 1d, 7d, 1m, 6m, 1y, all (ไม่ระบุ = ทั้งหมด) — คืน 1 แถว"""
     range_val = filters.get("range") if isinstance(filters, dict) else filters
 
-    interval = None
-    if range_val in interval_map:
-        interval = interval_map[range_val]
-
-    """สรุปตัวเลขรวมของร้าน (จำนวนลูกค้า/สินค้า/ออเดอร์/รีวิว ยอดขาย คะแนนเฉลี่ย) — คืน 1 แถว"""
     sql = f"""SELECT
           (SELECT COUNT(*) FROM customer)       AS 'ลูกค้า',
           (SELECT COUNT(*) FROM product)        AS 'สินค้า',
           (SELECT COUNT(*) FROM shop_order)     AS 'ออเดอร์',
           (SELECT COUNT(*) FROM review
-            WHERE review_date >= CURRENT_DATE - INTERVAL {interval}
+            WHERE 1=1 {_since("review_date", range_val)}
           )         AS 'รีวิว',
           ( SELECT SUM(total) FROM shop_order
-            WHERE order_date >= CURRENT_DATE - INTERVAL {interval}
+            WHERE 1=1 {_since("order_date", range_val)}
            ) AS 'ยอดขายรวม (บาท)',
           (SELECT ROUND(AVG(rating), 2) FROM review
-            WHERE review_date >= CURRENT_DATE - INTERVAL {interval}
+            WHERE 1=1 {_since("review_date", range_val)}
           ) AS 'คะแนนรีวิวเฉลี่ย'
           """
     return run_query(sql)[0]
 
 
 def summary_best_selling(filters):
-    """สินค้าขายดี 5 อันดับ ตามช่วงเวลา filters['range'] = 1d, 7d, 1m, 6m, 1y (ไม่ระบุ = ทั้งหมด)"""
+    """สินค้าขายดี 5 อันดับ ตามช่วงเวลา filters['range'] = 1d, 7d, 1m, 6m, 1y, all (ไม่ระบุ = ทั้งหมด)"""
     range_val = filters.get("range") if isinstance(filters, dict) else filters
 
-    sql = """
+    sql = f"""
     SELECT p.product_id AS 'รหัสสินค้า',
            p.name AS 'ชื่อสินค้า',
            pc.name AS 'หมวดหมู่',
@@ -612,28 +614,17 @@ def summary_best_selling(filters):
     INNER JOIN product AS p ON ol.product_id = p.product_id
     INNER JOIN shop_order AS so ON ol.order_id = so.order_id
     LEFT JOIN primary_category AS pc ON p.category = pc.category_id
-    WHERE 1=1
-    """
-    params = []
-
-    if range_val in interval_map:
-        sql += f" AND so.order_date >= CURRENT_DATE - INTERVAL {interval_map[range_val]}"
-
-    sql += """
+    WHERE 1=1 {_since("so.order_date", range_val)}
     GROUP BY p.product_id, p.name, pc.name
     ORDER BY SUM(ol.qty) DESC, p.product_id
     LIMIT 5
     """
+    return run_query(sql)
 
-    return run_query(sql, tuple(params))
 
 def summary_customers_above_avg(filters):
-    # range: 1d, 7d, 1m, 6m, 1y
+    """ลูกค้าที่ยอดซื้อสูงกว่าค่าเฉลี่ย ตามช่วงเวลา filters['range'] = 1d, 7d, 1m, 6m, 1y, all (ไม่ระบุ = ทั้งหมด)"""
     range_val = filters.get("range") if isinstance(filters, dict) else filters
-
-    interval = None
-    if range_val in interval_map:
-        interval = interval_map[range_val]
 
     sql = f"""
      SELECT c.cust_id as 'รหัสลูกค้า', c.name as 'ชื่อลูกค้า',
@@ -643,7 +634,7 @@ def summary_customers_above_avg(filters):
         ON c.cust_id = so.cust_id
     INNER JOIN order_line AS ol
         ON so.order_id = ol.order_id
-    WHERE so.order_date >= CURRENT_DATE - INTERVAL {interval}
+    WHERE 1=1 {_since("so.order_date", range_val)}
     GROUP BY c.cust_id, c.name
     HAVING SUM(ol.qty * ol.unit_price) > (
         SELECT AVG(customer_total)
@@ -652,7 +643,7 @@ def summary_customers_above_avg(filters):
             FROM shop_order AS so2
             INNER JOIN order_line AS ol2
                 ON so2.order_id = ol2.order_id
-            WHERE so2.order_date >= CURRENT_DATE - INTERVAL {interval}
+            WHERE 1=1 {_since("so2.order_date", range_val)}
             GROUP BY so2.cust_id
         ) AS totals
     )
