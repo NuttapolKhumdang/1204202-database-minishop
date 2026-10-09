@@ -29,12 +29,13 @@
         </select>
       </section>
 
-      
       <script>
         const filter = new URLSearchParams(window.location.search);
         const rangeSelector = document.querySelector("#rangeSelector");
         const rangeOptions = document.querySelectorAll("option#rangeOption");
         const range = filter.get("range");
+
+        if (range == "all" || !range) rangeOptions[rangeOptions.length - 1].setAttribute("selected", true);
 
         for (let i = 0; i < rangeOptions.length; i++) {
           if (rangeOptions[i].value == range) {
