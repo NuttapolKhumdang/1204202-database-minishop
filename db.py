@@ -56,7 +56,8 @@ def _friendly(err):
         m = re.search(r"[`'](\w+)[`']", err.msg or "")
         name = m.group(1) if m else ""
         return ValueError(_CHECK_MSG.get(name, f"ค่าที่กรอกไม่ผ่านเงื่อนไขของตาราง ({name})"))
-    if err.errno == 1406:      # ข้อความยาวเกินขนาดคอลัมน์ (เช่น tier / postal_code เป็น VARCHAR(6))
+    # ข้อความยาวเกินขนาดคอลัมน์ (เช่น tier / postal_code เป็น VARCHAR(6))
+    if err.errno == 1406:
         m = re.search(r"column '(\w+)'", err.msg or "")
         return ValueError(f"ข้อมูลในช่อง '{m.group(1) if m else ''}' ยาวเกินที่กำหนด")
     return None
@@ -135,7 +136,8 @@ def _build_set(data, skip_blank=(), blank_to_null=()):
 # 1 ลูกค้ามีได้หลายที่อยู่ (ตาราง address) — หน้าเว็บแสดง/แก้ "ที่อยู่แรก" (address_id ต่ำสุด) ของลูกค้า
 _FIRST_ADDRESS = "a.address_id = (SELECT MIN(a2.address_id) FROM address a2 WHERE a2.cust_id = c.cust_id)"
 _ADDRESS_TEXT = "CONCAT_WS(' ', a.line_1, a.line_2, a.province, a.postal_code)"
-_ADDRESS_RE = re.compile(r"^(?P<line_1>.+?)\s+(?P<province>\S+)\s+(?P<postal_code>\d{5})$")
+_ADDRESS_RE = re.compile(
+    r"^(?P<line_1>.+?)\s+(?P<province>\S+)\s+(?P<postal_code>\d{5})$")
 
 
 def _address_from(data, old=None):
@@ -154,7 +156,8 @@ def _address_from(data, old=None):
             return new
         # แยกช่องไม่ต่างจากเดิม → ไปดูต่อว่าช่อง address (ข้อความรวม) ถูกแก้หรือเปล่า
 
-    text = " ".join(str(data.get("address") or "").split())   # แบบที่ 2: ช่องเดียว (ยุบช่องว่างซ้ำ)
+    # แบบที่ 2: ช่องเดียว (ยุบช่องว่างซ้ำ)
+    text = " ".join(str(data.get("address") or "").split())
     if not text or (old and text == " ".join(old["text"].split())):
         return None
     m = _ADDRESS_RE.match(text)
@@ -208,7 +211,6 @@ def search_customers(filters):
     return run_query(sql, args)
 
 
-
 def get_customer(cust_id):
     sql = f"""
         SELECT c.*
@@ -249,12 +251,14 @@ def update_customer(cust_id, data):
                               blank_to_null=("gender", "birthdate"))
 
     def work(cur):
-        cur.execute("SELECT cust_id FROM customer WHERE cust_id = %s", (cust_id,))
+        cur.execute(
+            "SELECT cust_id FROM customer WHERE cust_id = %s", (cust_id,))
         if not cur.fetchall():
             raise ValueError(f"ไม่พบลูกค้ารหัส {cust_id}")
         affected = 0
         if sets:
-            cur.execute(f"UPDATE customer SET {sets} WHERE cust_id=%s", (*params, cust_id))
+            cur.execute(
+                f"UPDATE customer SET {sets} WHERE cust_id=%s", (*params, cust_id))
             affected += cur.rowcount
 
         cur.execute(f"SELECT a.address_id, a.line_1, a.line_2, a.province, a.postal_code, "
@@ -286,7 +290,66 @@ def delete_customer(cust_id):
     return run_command("DELETE FROM customer WHERE cust_id=%s", (cust_id,))
 
 
+# ---------- address (address) ----------
+
+
+def get_customer_address(cust_id):
+    sql = f"""
+        SELECT *
+        FROM address a
+        WHERE a.cust_id = %s
+    """
+    rows = run_query(sql, (cust_id,))
+    return rows
+
+
+def get_address(address_id):
+    sql = f"""
+        SELECT *
+        FROM address a
+        WHERE a.address_id = %s
+    """
+    rows = run_query(sql, (address_id,))
+    return rows[0] if rows else None
+
+
+def create_address(cust_id, data):
+    sql = f"""
+        INSERT INTO address (cust_id, address_type, line_1, line_2, province, postal_code)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """
+    rows = run_command(sql, (cust_id, data['address_type'], data['line_1'],
+                       data['line_2'], data['province'], data['postal_code']))
+    return rows
+
+
+def update_address(address_id, data):
+    sql = f"""
+        UPDATE address
+        SET     address_type = %s
+            ,   line_1 = %s
+            ,   line_2 = %s
+            ,   province = %s
+            ,   postal_code = %s
+        WHERE   address_id = %s
+    """
+    rows = run_command(
+        sql, (data['address_type'], data['line_1'], data['line_2'], data['province'], data['postal_code'], address_id))
+    return rows
+
+
+def delete_address(address_id):
+    sql = f"""
+        DELETE FROM address
+        WHERE address_id = %s
+    """
+
+    rows = run_command(sql, (address_id,))
+    return rows
+
 # ---------- สินค้า (product) ----------
+
+
 def _category_id(value):
     """แปลงหมวดหมู่ที่ส่งมา (รหัสหรือชื่อ) เป็น category_id — ว่าง → None, ไม่พบชื่อ → error"""
     value = _text(value)
@@ -294,10 +357,11 @@ def _category_id(value):
         return None
     if value.isdigit():
         return int(value)
-    rows = run_query("SELECT category_id FROM primary_category WHERE name = %s", (value,))
+    rows = run_query(
+        "SELECT category_id FROM primary_category WHERE name = %s", (value,))
     if not rows:
         raise ValueError(f"ไม่พบหมวดหมู่ '{value}'")
-    return rows[0]["category_id"] # type: ignore
+    return rows[0]["category_id"]  # type: ignore
 
 
 def search_products(filters):
@@ -434,9 +498,10 @@ def check_can_ship(order_id):
     if not lines:
         return False, "ออเดอร์นี้ไม่สามารถจัดส่งได้ (ไม่มีรายการสินค้า)"
 
-    problems = [f"{l['name']} (สั่ง {l['qty']} / คงเหลือ {l['stock'] or 0})" # type: ignore
+    problems = [f"{l['name']} (สั่ง {l['qty']} / คงเหลือ {l['stock'] or 0})"  # type: ignore
                 for l in lines
-                if l["is_active"] == 0 or (l["stock"] or 0) < l["qty"]]  # type: ignore
+                # type: ignore
+                if l["is_active"] == 0 or (l["stock"] or 0) < l["qty"]]
     if problems:
         return False, "ออเดอร์นี้ไม่สามารถจัดส่งได้ (สินค้าไม่พร้อม: " + ", ".join(problems) + ")"
     return True, "จัดส่งได้"
@@ -449,7 +514,8 @@ def create_order(data):
         raise ValueError("กรุณาระบุรหัสลูกค้า")
     sub_total = _money(data.get("sub_total"))
     discount = _money(data.get("discount"))
-    total = _money(data.get("total"), default=sub_total - discount) # type: ignore
+    total = _money(data.get("total"), default=sub_total -
+                   discount)  # type: ignore
 
     sql = """
         INSERT INTO shop_order (cust_id, order_date, status, address, sub_total, discount, total)
@@ -469,7 +535,8 @@ def update_order(order_id, data):
         raise ValueError(f"ไม่พบออเดอร์รหัส {order_id}")
 
     # เปลี่ยนสถานะเป็น shipped ต้องผ่านการตรวจสต็อกก่อน (ดู check_can_ship)
-    if blank_to_none(data.get("status")) == "shipped" and current["status"] != "shipped": # type: ignore
+    # type: ignore
+    if blank_to_none(data.get("status")) == "shipped" and current["status"] != "shipped":
         ok, msg = check_can_ship(order_id)
         if not ok:
             raise ValueError(msg)
@@ -575,14 +642,16 @@ interval_map = {
     "1m": "1 MONTH",
     "6m": "6 MONTH",
     "1y": "1 YEAR",
-    "all": None, 
+    "all": None,
 }
+
 
 def _since(column, range_val):
     interval = interval_map.get(range_val)
     if not interval:
         return ""          # all / ไม่ระบุ / ไม่รู้จัก → ไม่กรอง
     return f"AND {column} >= CURRENT_DATE - INTERVAL {interval}"
+
 
 def summary_summary(filters):
     """สรุปตัวเลขรวมของร้านตามช่วงเวลา filters['range'] = 1d, 7d, 1m, 6m, 1y, all (ไม่ระบุ = ทั้งหมด) — คืน 1 แถว"""

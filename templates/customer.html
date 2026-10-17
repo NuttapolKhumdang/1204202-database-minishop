@@ -4,7 +4,103 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ร้านค้าออนไลน์ — Mini Online Shop</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <script>
+      const $ = (s) => document.querySelector(s);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <script>
+      const ENTITIES = {
+        label: "ลูกค้า",
+        api: "/api/customers/{{ id }}/address",
+        idKey: "address_id",
+        form: [
+          {
+            key: "address_type",
+            label: "ประเภท",
+            type: "select",
+            options: ["home", "work"],
+          },
+          {
+            key: "line_1",
+            label: "บรรทัดที่ 1",
+            type: "text",
+          },
+          {
+            key: "line_2",
+            label: "บรรทัดที่ 2",
+            type: "text",
+          },
+          {
+            key: "province",
+            label: "จังหวัด",
+            type: "text",
+          },
+          {
+            key: "postal_code",
+            label: "รหัสไปรษณีย์",
+            type: "number",
+          },
+        ],
+      };
+    </script>
+    <script src="{{ url_for('static', filename='table.js') }}"></script>
   </head>
-  <body></body>
+  <body>
+    {% include 'ui/nav.html' %}
+
+    <main class="container">
+      <section class="card flex flex-col">
+        <h1 id="name" class="text-4xl font-bold pb-16">Customer's Name</h1>
+        <ul id="details" class="list-none"></ul>
+      </section>
+
+      <div id="address" class="card">
+        <header class="flex flex-row items-center justify-between">
+          <h3>ที่อยู่</h3>
+          <button class="btn primary" id="btnAdd">+</button>
+        </header>
+        <div id="address_table_status" class="status"></div>
+        <div class="table-wrap">
+          <table id="address_table">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <div id="modal" class="modal hidden">
+      <div class="modal-box">
+        <h3 id="modalTitle">เพิ่มข้อมูล</h3>
+        <div id="formFields"></div>
+        <div class="btn-row">
+          <button class="btn primary" id="btnSave">บันทึก</button>
+          <button class="btn" id="btnCancel">ยกเลิก</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (async () => {
+        const c = await fetch("/api/customers/{{ id }}", { method: "GET" });
+        const customer = (await c.json()).data;
+
+        $("h1#name").innerHTML = customer.name;
+
+        for (let k of Object.keys(customer)) {
+          if (k == "name") continue;
+          $("ul#details").innerHTML += `<li class="flex flex-row items-baseline"><span class="min-w-24 text-sm">${k}</span><p class="text-xl">${customer[k]}</p><li>`;
+        }
+      })();
+
+      (async () => {
+        createTable("address_table", "/api/customers/{{ id }}/address", true);
+      })();
+    </script>
+
+    <script src="{{ url_for('static', filename='forms.js') }}"></script>
+  </body>
 </html>

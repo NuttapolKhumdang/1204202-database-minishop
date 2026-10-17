@@ -41,9 +41,15 @@ def safe(fn, *args, **kwargs):
 def page_home():
     return render_template("index.html")
 
+
 @app.route("/report")
 def page_report():
     return render_template("report.html")
+
+
+@app.route("/customer/<int:_id>")
+def page_customer(_id: int):
+    return render_template("customer.html", id=_id)
 
 
 # ---- ลูกค้า ----
@@ -52,61 +58,115 @@ def customers_list():
     filters = {k: v for k, v in request.args.items() if v}
     return safe(db.search_customers, filters)
 
+
 @app.route("/api/customers/<int:_id>", methods=["GET"])
 def customer_get(_id):
     return safe(db.get_customer, _id)
+
 
 @app.route("/api/customers", methods=["POST"])
 def customer_create():
     return safe(db.create_customer, request.json)
 
+
 @app.route("/api/customers/<int:_id>", methods=["PUT"])
 def customer_update(_id):
     return safe(db.update_customer, _id, request.json)
+
 
 @app.route("/api/customers/<int:_id>", methods=["DELETE"])
 def customer_delete(_id):
     return safe(db.delete_customer, _id)
 
+
+@app.route("/api/customers/<int:_id>/address", methods=["GET"])
+def customer_address_get(_id):
+    return safe(db.get_customer_address, _id)
+
+
+@app.route("/api/customers/<int:cust_id>/address", methods=["POST"])
+def address_post(cust_id):
+    return safe(db.create_address, cust_id, request.json)
+
+
+@app.route("/api/customers/<int:cust_id>/address/<int:address_id>", methods=["GET"])
+def address_get(cust_id, address_id):
+    return safe(db.get_address, address_id)
+
+@app.route("/api/customers/<int:cust_id>/address/<int:address_id>", methods=["PUT"])
+def address_put(cust_id, address_id):
+    return safe(db.update_address, address_id, request.json)
+
+@app.route("/api/customers/<int:cust_id>/address/<int:address_id>", methods=["DELETE"])
+def address_delete(cust_id, address_id):
+    return safe(db.delete_address, address_id)
+
+
+# @app.route("/api/customers", methods=["POST"])
+# def customer_create():
+#     return safe(db.create_customer, request.json)
+
+
+# @app.route("/api/customers/<int:_id>", methods=["PUT"])
+# def customer_update(_id):
+#     return safe(db.update_customer, _id, request.json)
+
+
+# @app.route("/api/customers/<int:_id>", methods=["DELETE"])
+# def customer_delete(_id):
+#     return safe(db.delete_customer, _id)
+
 # ---- สินค้า ----
+
+
 @app.route("/api/products", methods=["GET"])
 def products_list():
     filters = {k: v for k, v in request.args.items() if v}
     return safe(db.search_products, filters)
 
+
 @app.route("/api/products/<int:_id>", methods=["GET"])
 def product_get(_id):
     return safe(db.get_product, _id)
+
 
 @app.route("/api/products", methods=["POST"])
 def product_create():
     return safe(db.create_product, request.json)
 
+
 @app.route("/api/products/<int:_id>", methods=["PUT"])
 def product_update(_id):
     return safe(db.update_product, _id, request.json)
+
 
 @app.route("/api/products/<int:_id>", methods=["DELETE"])
 def product_delete(_id):
     return safe(db.delete_product, _id)
 
 # ---- ออเดอร์ ----
+
+
 @app.route("/api/orders", methods=["GET"])
 def orders_list():
     filters = {k: v for k, v in request.args.items() if v}
     return safe(db.search_orders, filters)
 
+
 @app.route("/api/orders/<int:_id>", methods=["GET"])
 def order_get(_id):
     return safe(db.get_order, _id)
+
 
 @app.route("/api/orders", methods=["POST"])
 def order_create():
     return safe(db.create_order, request.json)
 
+
 @app.route("/api/orders/<int:_id>", methods=["PUT"])
 def order_update(_id):
     return safe(db.update_order, _id, request.json)
+
 
 @app.route("/api/orders/<int:_id>", methods=["DELETE"])
 def order_delete(_id):
@@ -119,10 +179,12 @@ def summary_summary():
     filters = {k: v for k, v in request.args.items() if v}
     return safe(db.summary_summary, filters)
 
+
 @app.route("/api/report")
 def summary_list():
     """รายชื่อรายงานทั้งหมด (อ่านจาก db.REPORTS) ให้หน้าเว็บสร้างกล่องรายงาน"""
     return jsonify({"ok": True, "data": [{"key": k, "title": t} for k, t, _ in db.SUMMARY]})
+
 
 @app.route("/api/report/<key>")
 def summary_run(key):

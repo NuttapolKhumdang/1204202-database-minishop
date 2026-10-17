@@ -201,6 +201,7 @@ function renderTable(r) {
     const id = row[ENTITIES[current].idKey];
     return "<tr>" + cols.map(c => "<td>" + (row[c] ?? "—") + "</td>").join("") +
       '<td><button class="btn sm" onclick="editRow(' + id + ')">แก้ไข</button> ' +
+      `<a class="btn sm" href="/customer/${id}">แก้ไข</a>`+
       '<button class="btn sm del" onclick="deleteRow(' + id + ')">ลบ</button></td></tr>';
   }).join("");
 }

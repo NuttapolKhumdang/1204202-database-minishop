@@ -19,8 +19,8 @@ function fillTable(tableSel, statusSel, r) {
 async function loadSummary() {
     // report_summary() คืน dict {ชื่อการ์ด: ตัวเลข} → 1 คีย์ = 1 การ์ด
     const filter = new URLSearchParams(window.location.search);
-
     const r = await api("/api/report/summary" + "?range=" + (filter.get('range') || 'all'));
+
     const box = $("#report");
     if (!r.ok) { box.innerHTML = '<div style="grid-column:1/-1" class="status ' + (r.todo ? "todo" : "err") + '">' + (r.todo ? "🚧 " : "⚠️ ") + r.error + '</div>'; return; }
     box.innerHTML = Object.entries(r.data || {}).map(([label, num]) =>
