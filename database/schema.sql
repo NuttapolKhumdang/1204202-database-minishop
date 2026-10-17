@@ -22,7 +22,8 @@ CREATE TABLE customer (
     email           VARCHAR(100) NOT NULL,
     gender          VARCHAR(8),
     birthdate       DATE,
-    point           INT NOT NULL DEFAULT 0
+    point           INT NOT NULL DEFAULT 0,
+    join_date       DATE DEFAULT (CURRENT_DATE)
 );
 
 CREATE TABLE address (
@@ -53,6 +54,7 @@ CREATE TABLE product (
     price           DECIMAL(7, 2) NOT NULL DEFAULT 0,
     stock           INT DEFAULT 0,
     is_active       BOOLEAN DEFAULT TRUE,
+    added_date      DATE DEFAULT (CURRENT_DATE),
 
     CONSTRAINT chk_product_price CHECK (price >= 0),
     CONSTRAINT chk_product_stock CHECK (stock >= 0)
@@ -84,11 +86,9 @@ CREATE TABLE shop_order (
     address         INT,
     sub_total       DECIMAL(9, 2) NOT NULL,
     discount        DECIMAL(9, 2) NOT NULL,
-    total           DECIMAL(9, 2) NOT NULL,
 
     CONSTRAINT chk_order_sub_total      CHECK (sub_total >= 0),
     CONSTRAINT chk_order_discount       CHECK (discount >= 0),
-    CONSTRAINT chk_order_total          CHECK (total >= 0),
     CONSTRAINT chk_order_status         CHECK (status IN ('pending', 'shipped', 'complete', 'cancel')),
     CONSTRAINT fk_order_cust            FOREIGN KEY (cust_id) REFERENCES customer (cust_id),
     CONSTRAINT fk_order_address         FOREIGN KEY (address) REFERENCES address (address_id)
@@ -115,7 +115,7 @@ CREATE TABLE review (             -- M:N: customer × product
     order_id        INT,
     product_id      INT,
     rating          INT,
-    comment         VARCHAR(100),
+    comment         VARCHAR(256),
     review_date     DATE DEFAULT (CURRENT_DATE),
 
     CONSTRAINT chk_review_rating    CHECK (rating BETWEEN 1 AND 5),
@@ -130,8 +130,8 @@ CREATE TABLE payment (            -- 1:M จาก shop_order
 
     payment_id      INT AUTO_INCREMENT PRIMARY KEY,
     order_id        INT,
-    method          VARCHAR(12),
-    amount          DECIMAL(9, 2),
+    method          VARCHAR(24),
+    amount          DECIMAL(9, 2) NOT NULL,
     paid_date       DATE DEFAULT (CURRENT_DATE) NOT NULL,
 
     CONSTRAINT chk_payment_method   CHECK (method IN ('credit card', 'online banking')),
