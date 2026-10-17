@@ -166,48 +166,53 @@ def _address_from(data, old=None):
 
 
 def search_customers(filters):
-    """ค้นหาลูกค้า (ชื่อ/อีเมล/ที่อยู่/ระดับ) — ห้ามตั้ง alias ไทย เพราะหน้าเว็บอ่านตามชื่อคอลัมน์"""
+    if "name" in filters:
+        filters["name"] = f"%{filters["name"]}%"
+
+    if "email" in filters:
+        filters["email"] = f"%{filters["email"]}%"
+
+    filter_options = {
+        "name": "name LIKE %s",
+        "email": "email LIKE %s",
+        "tier": "tier = %s",
+    }
+
+    filter_string = ""
+    args = ()
+
+    for index, key in enumerate(filters.keys()):
+        if index == 0:
+            filter_string += " WHERE "
+        else:
+            filter_string += " AND "
+
+        filter_string += filter_options[key]
+        args = (*args, filters[key])
+
     sql = f"""
-        SELECT c.cust_id,
-               c.name,
-               c.email,
-               {_ADDRESS_TEXT} AS address,
-               c.tier
-        FROM vw_customer_detail c
-        LEFT JOIN address a ON {_FIRST_ADDRESS}
-        WHERE 1=1
+        SELECT  c.cust_id
+            ,   c.name
+            ,   c.email
+            ,   CASE c.gender WHEN 'F' THEN 'Female'
+                            WHEN 'M' THEN 'Male'
+                END AS 'gender'
+            ,   t.tier
+            ,   c.join_date
+        FROM    customer c
+        JOIN    vw_customer_tier t ON t.cust_id = c.cust_id
+        {filter_string}
+    ORDER BY    cust_id
     """
-    params = []
 
-    if filters.get("name"):
-        sql += " AND c.name LIKE %s"
-        params.append("%" + filters["name"] + "%")
+    return run_query(sql, args)
 
-    if filters.get("email"):
-        sql += " AND c.email LIKE %s"
-        params.append("%" + filters["email"] + "%")
-
-    if filters.get("address"):
-        sql += (" AND (a.line_1 LIKE %s OR a.line_2 LIKE %s"
-                " OR a.province LIKE %s OR a.postal_code LIKE %s)")
-        search_addr = "%" + filters["address"] + "%"
-        params.extend([search_addr] * 4)
-
-    if filters.get("tier"):
-        sql += " AND c.tier = %s"
-        params.append(filters["tier"])
-
-    sql += " ORDER BY c.cust_id"
-    return run_query(sql, tuple(params))
 
 
 def get_customer(cust_id):
-    """ดึงลูกค้า 1 คนพร้อมที่อยู่แรก (address = ข้อความรวม ใช้เติมฟอร์มแก้ไข)"""
     sql = f"""
-        SELECT c.*, a.address_id, a.address_type, a.line_1, a.line_2, a.province, a.postal_code,
-               {_ADDRESS_TEXT} AS address
+        SELECT c.*
         FROM customer c
-        LEFT JOIN address a ON {_FIRST_ADDRESS}
         WHERE c.cust_id = %s
     """
     rows = run_query(sql, (cust_id,))
@@ -584,15 +589,19 @@ def summary_summary(filters):
     range_val = filters.get("range") if isinstance(filters, dict) else filters
 
     sql = f"""SELECT
-          (SELECT COUNT(*) FROM customer)       AS 'ลูกค้า',
-          (SELECT COUNT(*) FROM product)        AS 'สินค้า',
+          (SELECT COUNT(*) FROM customer
+            WHERE 1=1 {_since("join_date", range_val)}
+          )     AS 'ลูกค้า',
+          (SELECT COUNT(*) FROM product
+            WHERE 1=1 {_since("added_date", range_val)}
+          )        AS 'สินค้า',
           (SELECT COUNT(*) FROM shop_order
             WHERE 1=1 {_since("order_date", range_val)}
           )     AS 'ออเดอร์',
           (SELECT COUNT(*) FROM review
             WHERE 1=1 {_since("review_date", range_val)}
-          )         AS 'รีวิว',
-          ( SELECT SUM(total) FROM shop_order
+          )         AS 'รีวิว',   
+          ( SELECT SUM(sub_total - discount) FROM shop_order
             WHERE 1=1 {_since("order_date", range_val)}
            ) AS 'ยอดขายรวม (บาท)',
           (SELECT ROUND(AVG(rating), 2) FROM review
@@ -609,16 +618,14 @@ def summary_best_selling(filters):
     sql = f"""
     SELECT p.product_id AS 'รหัสสินค้า',
            p.name AS 'ชื่อสินค้า',
-           pc.name AS 'หมวดหมู่',
            SUM(ol.qty) AS 'จำนวนที่ขาย',
            SUM(ol.qty * ol.unit_price) AS 'ยอดขายรวม'
     FROM order_line AS ol
     INNER JOIN product AS p ON ol.product_id = p.product_id
     INNER JOIN shop_order AS so ON ol.order_id = so.order_id
-    LEFT JOIN primary_category AS pc ON p.category = pc.category_id
     WHERE 1=1 {_since("so.order_date", range_val)}
-    GROUP BY p.product_id, p.name, pc.name
-    ORDER BY SUM(ol.qty) DESC, p.product_id
+    GROUP BY p.product_id, p.name
+    ORDER BY SUM(ol.qty) DESC, p.product_id 
     LIMIT 5
     """
     return run_query(sql)

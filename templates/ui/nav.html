@@ -1,0 +1,12 @@
+<header class="topbar">
+  <div class="brand">ร้านค้าออนไลน์ 🛒<span>Mini Online Shop</span></div>
+  <nav>
+    <a href="/" id="a-index">จัดการข้อมูล</a>
+    <a href="/report" id="a-report">สรุปข้อมูล</a>
+  </nav>
+
+  <script>
+    if (window.location.pathname == "/") document.querySelector("a#a-index").classList.add("active");
+    if (window.location.pathname == "/report") document.querySelector("a#a-report").classList.add("active");
+  </script>
+</header>

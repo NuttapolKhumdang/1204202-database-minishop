@@ -45,10 +45,6 @@ def page_home():
 def page_report():
     return render_template("report.html")
 
-@app.route("/summary")
-def page_summary():
-    return render_template("summary.html")
-
 
 # ---- ลูกค้า ----
 @app.route("/api/customers", methods=["GET"])
@@ -118,34 +114,17 @@ def order_delete(_id):
 
 
 # ---- รายงาน ----
-@app.route("/api/reports/summary")
-def report_summary():
-    return safe(db.report_summary)
-
-@app.route("/api/reports")
-def report_list():
-    """รายชื่อรายงานทั้งหมด (อ่านจาก db.REPORTS) ให้หน้าเว็บสร้างกล่องรายงาน"""
-    return jsonify({"ok": True, "data": [{"key": k, "title": t} for k, t, _ in db.REPORTS]})
-
-@app.route("/api/reports/<key>")
-def report_run(key):
-    """รันรายงานตามชื่อ เช่น /api/reports/overdue"""
-    for k, _, fn in db.REPORTS:
-        if k == key:
-            return safe(fn)
-    return jsonify({"ok": False, "error": f"ไม่พบรายงาน '{key}' ใน db.REPORTS"}), 404
-
-@app.route("/api/summary/summary")
+@app.route("/api/report/summary")
 def summary_summary():
     filters = {k: v for k, v in request.args.items() if v}
     return safe(db.summary_summary, filters)
 
-@app.route("/api/summary")
+@app.route("/api/report")
 def summary_list():
     """รายชื่อรายงานทั้งหมด (อ่านจาก db.REPORTS) ให้หน้าเว็บสร้างกล่องรายงาน"""
     return jsonify({"ok": True, "data": [{"key": k, "title": t} for k, t, _ in db.SUMMARY]})
 
-@app.route("/api/summary/<key>")
+@app.route("/api/report/<key>")
 def summary_run(key):
     """รันรายงานตามชื่อ เช่น /api/reports/overdue"""
     filters = {k: v for k, v in request.args.items() if v}

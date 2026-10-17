@@ -7,13 +7,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   </head>
   <body>
-    <header class="topbar">
-      <div class="brand">ร้านค้าออนไลน์ 🛒<span>Mini Online Shop</span></div>
-      <nav>
-        <a href="/" class="active">จัดการข้อมูล</a>
-        <a href="/summary">สรุปข้อมูล</a>
-      </nav>
-    </header>
+    {% include 'ui/nav.html' %}
+
     <main class="container">
       <div class="tabs">
         <button class="tab active" data-entity="customers">ลูกค้า</button>

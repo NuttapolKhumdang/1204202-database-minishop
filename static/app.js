@@ -46,11 +46,6 @@ const ENTITIES = {
         "type": "text"
       },
       {
-        "key": "address",
-        "label": "ที่อยู่",
-        "type": "text"
-      },
-      {
         "key": "point",
         "label": "คะแนน",
         "type": "number"
