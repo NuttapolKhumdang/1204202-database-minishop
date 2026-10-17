@@ -93,8 +93,8 @@ VALUES
 ('shipping', 40, '48 หมู่ 7 ถนนโพธิสัตย์ ต.นาดี อ.เมือง', 'ชัยภูมิ', '52680');
 
 
--- หมวดหมู่หลัก
-INSERT INTO primary_category (name)
+-- หมวดหมู่
+INSERT INTO category (name)
 VALUES
 ('Books'),
 ('Movies'),	('Music'),	('Games'),
@@ -103,12 +103,7 @@ VALUES
 ('Health'),	('Beauty'),	('Toys'),
 ('Kids'),	('Baby'),	('Clothing'),
 ('Shoes'),	('Jewelery'),	('Sports'),
-('Outdoors'),	('Automotive'),	('Industrial');
-
-
--- หมวดหมู่
-INSERT INTO category (name)
-VALUES
+('Outdoors'),	('Automotive'),	('Industrial'),
 ('Steel'),
 ('Wooden'),	('Concrete'),	('Plastic'),
 ('Cotton'),	('Granite'),	('Rubber'),

@@ -11,7 +11,6 @@ DROP TABLE IF EXISTS product_category;
 DROP TABLE IF EXISTS category;
 DROP TABLE IF EXISTS shop_order;
 DROP TABLE IF EXISTS product;
-DROP TABLE IF EXISTS primary_category;
 DROP TABLE IF EXISTS address;
 DROP TABLE IF EXISTS customer;
 
@@ -41,11 +40,6 @@ CREATE TABLE address (
         ON DELETE CASCADE
 );
 
-CREATE TABLE primary_category (
-    category_id     INT AUTO_INCREMENT PRIMARY KEY,
-    name            VARCHAR(50)
-);
-
 CREATE TABLE category (
     category_id     INT AUTO_INCREMENT PRIMARY KEY,
     name            VARCHAR(50)
@@ -56,17 +50,12 @@ CREATE TABLE product (
 
     product_id      INT AUTO_INCREMENT PRIMARY KEY,
     name            VARCHAR(100) NOT NULL,
-    category        INT,
     price           DECIMAL(7, 2) NOT NULL DEFAULT 0,
     stock           INT DEFAULT 0,
     is_active       BOOLEAN DEFAULT TRUE,
 
     CONSTRAINT chk_product_price CHECK (price >= 0),
-    CONSTRAINT chk_product_stock CHECK (stock >= 0),
-    CONSTRAINT fk_primary_category FOREIGN KEY (category)
-        REFERENCES primary_category (category_id)
-        ON UPDATE CASCADE
-        ON DELETE CASCADE
+    CONSTRAINT chk_product_stock CHECK (stock >= 0)
 );
 
 CREATE TABLE product_category (
@@ -117,7 +106,7 @@ CREATE TABLE order_line (         -- M:N: shop_order × product
     CONSTRAINT chk_order_line_price     CHECK (unit_price >= 0),
     CONSTRAINT pk_order_line            PRIMARY KEY (order_id, product_id),
     CONSTRAINT fk_order_line_order      FOREIGN KEY (order_id) REFERENCES shop_order (order_id),
-    CONSTRAINT fk_order_line_product    FOREIGN KEY (product_id) REFERENCES product (product_id) 
+    CONSTRAINT fk_order_line_product    FOREIGN KEY (product_id) REFERENCES product (product_id)
 );
 
 CREATE TABLE review (             -- M:N: customer × product
