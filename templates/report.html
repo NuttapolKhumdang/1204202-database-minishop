@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>รายงาน — Mini Online Shop</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   </head>
   <body>
     {% include 'ui/nav.html' %}
@@ -42,7 +43,7 @@
         });
       </script>
 
-      <section class="cards" id="report"></section>
+      <section class="cards *:flex-1" id="report"></section>
       <!-- กล่องรายงาน: สร้างจาก db.REPORTS อัตโนมัติ (เพิ่มรายงานที่ db.py ไม่ต้องแก้ไฟล์นี้) -->
       <div id="reports"></div>
     </main>
