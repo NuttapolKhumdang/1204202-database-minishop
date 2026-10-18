@@ -324,9 +324,9 @@ def search_products(filters):
     """ค้นหาสินค้า (ชื่อ/หมวดหมู่/ช่วงราคา) — product_id ห้ามตั้ง alias ไทย (หน้าเว็บใช้สร้าง URL)"""
     sql = """
         SELECT  p.product_id
-            ,   p.name          AS 'ชื่อสินค้า'
-            ,   p.price         AS 'ราคา'
-            ,   p.stock         AS 'จำนวนคงเหลือ'
+            ,   p.name
+            ,   p.price
+            ,   p.stock
         FROM product p
         WHERE 1=1
     """
@@ -390,7 +390,8 @@ def create_product(data):
         raise ValueError("กรุณากรอกชื่อสินค้า")
 
     sql = "INSERT INTO product (name, price, stock) VALUES (%s, %s, %s)"
-    params = (name, blank_to_none(data.get("price")) or 0, blank_to_none(data.get("stock")) or 0)
+    params = (name, blank_to_none(data.get("price"))
+              or 0, blank_to_none(data.get("stock")) or 0)
     product = run_command(sql, params)
 
     if "category" in data:
@@ -489,7 +490,14 @@ def search_orders(filters):
 
 def get_order(order_id):
     """ดึงออเดอร์ 1 รายการ"""
-    sql = "SELECT * FROM shop_order WHERE order_id = %s"
+    sql = """
+        SELECT  c.cust_id
+            ,   c.name
+            ,   so.*
+        FROM shop_order so
+        JOIN customer c     ON c.cust_id = so.cust_id
+        WHERE order_id = %s
+    """
     rows = run_query(sql, (order_id,))
     return rows[0] if rows else None
 
@@ -573,12 +581,86 @@ def delete_order(order_id):
     return run_transaction(work)
 
 
+def get_order_line(order_id):
+    sql = """
+        SELECT  *
+        FROM    order_line ol
+        JOIN    product p       ON p.product_id = ol.product_id
+        WHERE   order_id = %s
+    """
+
+    rows = run_query(sql, (order_id,))
+    return rows
+
+
+def create_order_line(order_id, data):
+    def work(cur):
+        cur.execute(
+            "SELECT stock FROM product WHERE product_id = %s", (data["product_id"], ))
+        stock = cur.fetchone()["stock"]
+
+        avaliable_stock = int(stock) - int(data['qty'])  # type: ignore
+        if avaliable_stock >= 0:
+            cur.execute("UPDATE product SET stock = %s WHERE product_id = %s",
+                        (avaliable_stock, data['product_id'],))
+        else:
+            raise ValueError("จำนวนคำสั่งซื้อมากกว่าสินค้าในคลัง")
+
+        cur.execute("""
+            INSERT INTO order_line (order_id, product_id, qty, unit_price)
+            VALUES (%s, %s, %s, 0)
+        """, (order_id, data['product_id'], data['qty']))
+
+        cur.execute("""
+            UPDATE order_line
+            SET unit_price = (SELECT price FROM product WHERE product_id = order_line.product_id)
+            WHERE order_id = %s AND product_id = %s
+        """, (order_id, data['product_id']))
+
+        cur.execute("""
+            UPDATE shop_order
+            SET sub_total = COALESCE((SELECT SUM(ol.qty * ol.unit_price)
+            FROM order_line ol
+            WHERE ol.order_id = shop_order.order_id), 0);
+        """)
+
+    return run_transaction(work)
+
+
+def delete_order_line(order_id, pid):
+    def work(cur):
+        cur.execute("""
+            SELECT qty FROM order_line
+            WHERE       order_id = %s AND product_id = %s
+        """, (order_id, pid, ))
+
+        qty = cur.fetchone()['qty']
+
+        cur.execute("""
+            DELETE FROM order_line
+            WHERE       order_id = %s AND product_id = %s
+        """, (order_id, pid, ))
+
+        cur.execute("""
+            UPDATE product SET stock = stock + %s
+            WHERE  product_id = %s
+        """, (qty, pid, ))
+
+        cur.execute("""
+            UPDATE shop_order
+            SET sub_total = COALESCE((SELECT SUM(ol.qty * ol.unit_price)
+            FROM order_line ol
+            WHERE ol.order_id = shop_order.order_id), 0);
+        """)
+
+    return run_transaction(work)
+
+
 # ============================================================
 #  REPORT (รายงาน — ใช้ JOIN + GROUP BY + subquery)
 #  ★ ชื่อคอลัมน์ใน SELECT จะกลายเป็นหัวตารางบนเว็บ — ใช้ AS 'ชื่อภาษาไทย' ได้
 #  ★ ORDER BY ชื่อ alias ต้องครอบด้วย backtick (`ชื่อ`) ห้ามใช้ 'ชื่อ' เพราะ MySQL จะมองเป็นข้อความคงที่ (ไม่เรียงจริง)
 # ============================================================
-
 interval_map = {
     "1d": "1 DAY",
     "7d": "7 DAY",

@@ -69,6 +69,7 @@ const ENTITIES = {
   "products": {
     "label": "สินค้า",
     "api": "/api/products",
+    "add": "/product",
     "idKey": "product_id",
     "search": [
       {
@@ -232,6 +233,11 @@ function renderTable(r) {
   }).join("");
 }
 async function openForm(title, data = {}) {
+  if (ENTITIES[current].add) {
+    window.location.href = ENTITIES[current].add;
+    return;
+  }
+  
   await loadOptions(formFields(), false);
   $("#modalTitle").textContent = title;
   $("#formFields").innerHTML = formFields().map(f => fieldHtml(f, "f_", data[f.key])).join("");

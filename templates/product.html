@@ -18,6 +18,7 @@
     <main class="container">
       <section class="card flex flex-col">
         <h1 id="name" class="text-4xl font-bold pb-2">สินค้า</h1>
+        
         <div class="form-section grid grid-cols-1 gap-2">
           <label class="field">
             <span>ชื่อ</span>
@@ -62,7 +63,7 @@
     </main>
 
     <script>
-      const id = "{{ id }}";
+      const id = "{{ id }}" ?? undefined;
 
       let categories = [];
       let searchedCategories = [];
@@ -100,17 +101,24 @@
           category: JSON.stringify(categories.map((k) => k.category_id)),
         };
 
-        const r = await (
-          await fetch(`/api/products` + (id ? "/" + id : ""), {
-            method: id ? "PUT" : "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-          })
-        ).json();
-        console.log(r);
-        return r;
+        try {
+          const r = await (
+            await fetch(`/api/products` + (id ? "/" + id : ""), {
+              method: id ? "PUT" : "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(body),
+            })
+          ).json();
+
+          console.log(r);
+          if (r.ok) alert("บันทึกสำเร็จ");
+          else alert(r.error);
+        } catch (e) {
+          console.error(e);
+          alert(e.message);
+        }
       }
 
       async function loadEdit() {

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ร้านค้าออนไลน์ — Mini Online Shop</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <script>
+      const $ = (s) => document.querySelector(s);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+
+  <body>
+    {% include 'ui/nav.html' %}
+
+    <main class="container">
+      <section class="card flex flex-col">
+        <h1 id="name" class="text-4xl font-bold pb-2">คำสั่งซื้อ</h1>
+
+        <div class="form-section grid grid-cols-1 gap-2">
+          <label class="field">
+            <span>ชื่อ</span>
+            <input type="text" id="name" value="" disabled />
+          </label>
+
+          <label class="field">
+            <span>สถานะ</span>
+            <select id="status">
+              <option id="status-pending" value="pending">กำลังเตรียม</option>
+              <option id="status-shipped" value="shipped">กำลังขนส่ง</option>
+              <option id="status-complete" value="complete">สำเร็จ</option>
+              <option id="status-cancel" value="cancel">ยกเลิก</option>
+            </select>
+          </label>
+        </div>
+
+        <section class="form-section my-4 flex flex-col gap-4">
+          <span class="font-bold text-xl">รายการสินค้า</span>
+          <div id="order-lines" class="flex flex-col"></div>
+
+          <nav class="flex flex-col gap-4">
+            <span class="font-bold text-xl">เพิ่มสินค้า</span>
+
+            <section class="grid grid-cols-4 gap-2">
+              <label class="field col-span-3">
+                <span>ชื่อ</span>
+                <input type="text" id="product-search-name" value="" />
+              </label>
+              <label class="field">
+                <span>จำนวน</span>
+                <input type="number" id="product-search-qty" value="1" />
+              </label>
+            </section>
+
+            <section id="searched-product"></section>
+          </nav>
+        </section>
+
+        <button id="btnSave" class="btn primary">บันทึก</button>
+      </section>
+    </main>
+
+    <script>
+      const id = "{{ id }}" ?? undefined;
+
+      let order;
+      let lines = [];
+      let searchedProduct = [];
+
+      async function loadEdit() {
+        if (!id) return;
+
+        order = (await (await fetch(`/api/orders/${id}`)).json()).data;
+
+        for (let k of Object.keys(order)) {
+          if (!$(`input#${k}`)) continue;
+          $(`input#${k}`).value = order[k];
+        }
+
+        await renderOrderLines();
+      }
+
+      if (id) loadEdit();
+
+      async function renderOrderLines() {
+        lines = (await (await fetch(`/api/orders/${id}/lines`)).json()).data;
+
+        $(`#order-lines`).innerHTML = `
+          <div class="grid grid-cols-3 place-items-center py-1  font-bold">
+              <p class="font-bold w-full text-left">ชื่อสินค้า</p>
+
+              <section class="grid grid-cols-2 place-items-center w-full gap-2">
+                  <p class="w-full text-left">ราคา</p>
+                  <p class="w-full text-left">จำนวน</p>
+              </section>
+
+              <menu class="flex flex-row items-center gap-4">
+              </menu>
+            </div>`;
+
+        for (let k of lines) {
+          $(`#order-lines`).innerHTML += `
+            <div class="grid grid-cols-3 place-items-center py-1 border-b border-neutral-200">
+              <p class="font-bold w-full text-left">${k.name}</p>
+
+              <section class="grid grid-cols-2 place-items-center w-full gap-2">
+                  <p class="w-full text-left">${k.price}</p>
+                  <p class="w-full text-left">${k.qty}</p>
+              </section>
+
+              <menu class="flex flex-row items-center gap-4">
+                  <button class="btn" onclick="removeLine('${k.product_id}')">ลบ</button>
+              </menu>
+            </div>
+            `;
+        }
+      }
+
+      const removeLine = async (pid) => {
+        await fetch(`/api/orders/${order.order_id}/lines/${pid}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        renderOrderLines();
+      };
+
+      const addLine = async (pid) => {
+        await fetch(`/api/orders/${order.order_id}/lines`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            product_id: Number.parseInt(pid),
+            qty: Number.parseInt($("#product-search-qty").value),
+          }),
+        });
+        renderOrderLines();
+      };
+
+      async function searchProduct(keyword) {
+        searchedProduct = (await (await fetch(`/api/products?name=` + keyword)).json()).data;
+        renderSearchProduct();
+      }
+
+      const renderSearchProduct = () => {
+        $("#searched-product").innerHTML = `
+          <div class="grid grid-cols-3 place-items-center py-1  font-bold">
+              <p class="font-bold w-full text-left">ชื่อสินค้า</p>
+
+              <section class="grid grid-cols-2 place-items-center w-full gap-2">
+                  <p class="w-full text-left">ราคา</p>
+                  <p class="w-full text-left">คลัง</p>
+              </section>
+
+              <menu class="flex flex-row items-center gap-4">
+              </menu>
+            </div>`;
+
+        for (let p of searchedProduct) {
+          if (lines.map((l) => l.product_id).includes(p.product_id)) continue;
+
+          $("#searched-product").innerHTML += `
+              <div class="grid grid-cols-3 place-items-center py-1 border-b border-neutral-200">
+                  <p class="font-bold w-full text-left">${p.name}</p>
+
+                  <section class="grid grid-cols-2 place-items-center w-full gap-2">
+                      <p class="w-full text-left">${p.price}</p>
+                      <p class="w-full text-left">${p.stock}</p>
+                  </section>
+
+                  <menu class="flex flex-row items-center gap-4">
+                      <button class="btn" onclick="addLine('${p.product_id}')">เพิ่ม</button>
+                  </menu>
+              </div>
+            `;
+        }
+      };
+
+      $("#product-search-name").addEventListener("input", (ev) => {
+        searchProduct(ev.target.value);
+      });
+    </script>
+  </body>
+</html>

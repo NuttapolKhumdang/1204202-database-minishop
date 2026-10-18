@@ -62,6 +62,16 @@ def page_product_update(_id: int):
     return render_template("product.html", id=_id)
 
 
+@app.route("/order")
+def page_order_create():
+    return render_template("orders.html", id="")
+
+
+@app.route("/order/<int:_id>")
+def page_order_update(_id: int):
+    return render_template("orders.html", id=_id)
+
+
 # ---- ลูกค้า ----
 @app.route("/api/customers", methods=["GET"])
 def customers_list():
@@ -195,6 +205,21 @@ def order_update(_id):
 @app.route("/api/orders/<int:_id>", methods=["DELETE"])
 def order_delete(_id):
     return safe(db.delete_order, _id)
+
+
+@app.route("/api/orders/<int:_id>/lines", methods=["GET"])
+def orders_line_get(_id):
+    return safe(db.get_order_line, _id)
+
+
+@app.route("/api/orders/<int:oid>/lines", methods=["POST"])
+def orders_line_create(oid):
+    return safe(db.create_order_line, oid, request.json)
+
+
+@app.route("/api/orders/<int:oid>/lines/<int:pid>", methods=["DELETE"])
+def orders_line_delete(oid, pid):
+    return safe(db.delete_order_line, oid, pid)
 
 
 # ---- รายงาน ----
