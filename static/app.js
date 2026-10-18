@@ -46,6 +46,20 @@ const ENTITIES = {
         "type": "text"
       },
       {
+        "key": "birthdate",
+        "label": "วันเกิด",
+        "type": "date"
+      },
+      {
+        "key": "gender",
+        "label": "เพศ",
+        "type": "select",
+        "options": [
+          "Male",
+          "Female",
+        ]
+      },
+      {
         "key": "point",
         "label": "คะแนน",
         "type": "number"
@@ -66,6 +80,16 @@ const ENTITIES = {
         "key": "category",
         "label": "หมวดหมู่",
         "type": "text"
+      },
+      {
+        "key": "is_active",
+        "label": "สถานะ",
+        "type": "select",
+        "options": [
+          "ใช้งานอยู่",
+          "เลิกขาย",
+          "ทั้งหมด",
+        ]
       }
     ],
     "form": [
@@ -199,10 +223,12 @@ function renderTable(r) {
   head.innerHTML = cols.map(c => "<th>" + c + "</th>").join("") + "<th>จัดการ</th>";
   body.innerHTML = rows.map(row => {
     const id = row[ENTITIES[current].idKey];
-    return "<tr>" + cols.map(c => "<td>" + (row[c] ?? "—") + "</td>").join("") +
-      '<td><button class="btn sm" onclick="editRow(' + id + ')">แก้ไข</button> ' +
-      `<a class="btn sm" href="/customer/${id}">แก้ไข</a>`+
-      '<button class="btn sm del" onclick="deleteRow(' + id + ')">ลบ</button></td></tr>';
+    return "<tr>" + cols.map(c => "<td>" + (row[c] ?? "—") + "</td>").join("")
+      + '<td>'
+      + (current === 'customers' ? `<button class="btn sm" onclick="editRow('${id}')">แก้ไข</button>` : "")
+      + (current === 'customers' ? `<a class="btn sm" href="/customer/${id}">ที่อยู่</a>` : "")
+      + (current === 'products' ? `<a class="btn sm" href="/product/${id}">แก้ไข</a>` : "")
+      + '<button class="btn sm del" onclick="deleteRow(' + id + ')">ลบ</button></td></tr>';
   }).join("");
 }
 async function openForm(title, data = {}) {

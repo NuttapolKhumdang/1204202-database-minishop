@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ร้านค้าออนไลน์ — Mini Online Shop</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <script>
+      const $ = (s) => document.querySelector(s);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+
+  <body>
+    {% include 'ui/nav.html' %}
+
+    <main class="container">
+      <section class="card flex flex-col">
+        <h1 id="name" class="text-4xl font-bold pb-2">สินค้า</h1>
+        <div class="form-section grid grid-cols-1 gap-2">
+          <label class="field">
+            <span>ชื่อ</span>
+            <input type="text" id="name" value="" />
+          </label>
+
+          <section class="grid grid-cols-2 gap-2">
+            <label class="field">
+              <span>ราคา</span>
+              <input type="number" id="price" value="0" />
+            </label>
+
+            <label class="field">
+              <span>คลัง</span>
+              <input type="number" id="stock" value="0" />
+            </label>
+          </section>
+
+          <section class="flex flex-col border border-neutral-300 p-2 rounded-xl gap-4">
+            <span>ประเถท</span>
+            <div class="flex flex-row flex-wrap gap-2 flex-1" id="categories"></div>
+
+            <label class="field">
+              <span>เพิ่ม</span>
+              <input type="text" id="category-search" value="" placeholder="ค้นหาประเภทสินค้า" />
+
+              <div id="category-search-result" class="flex flex-col *:flex-1"></div>
+            </label>
+          </section>
+
+          <label class="field">
+            <span>สถานะ</span>
+            <select name="is_active" id="is_active">
+              <option value="true">กำลังขาย</option>
+              <option id="is-active-false" value="false">หยุดใช้งาน</option>
+            </select>
+          </label>
+        </div>
+
+        <button id="btnSave" class="btn primary">บันทึก</button>
+      </section>
+    </main>
+
+    <script>
+      const id = "{{ id }}";
+
+      let categories = [];
+      let searchedCategories = [];
+
+      const renderCategory = () => {
+        $(`div#categories`).innerHTML = "";
+
+        for (let k of categories) {
+          $(`div#categories`).innerHTML += `<span
+            onclick="removeCategory('${k.category_id}')"
+            class="cursor-pointer px-2 border border-neutral-300 py-1 rounded-md hover:bg-neutral-100"
+          >${k.name}</span>`;
+        }
+
+        if (categories.length === 0) $(`div#categories`).innerHTML += `<span class="text-neutral-400">ยังไม่มีประเภทสินค้า</span>`;
+      };
+
+      const removeCategory = (id) => {
+        categories = categories.filter((c) => c.category_id != id);
+        renderCategory();
+      };
+
+      const addCategory = (id, name) => {
+        categories = [...categories, { category_id: id, name }];
+        renderCategory();
+        searchCategory();
+      };
+
+      async function save() {
+        const body = {
+          name: $("input#name").value,
+          price: $("input#price").value,
+          stock: $("input#stock").value,
+          is_active: $("#is_active").value == "false" ? 0 : 1,
+          category: JSON.stringify(categories.map((k) => k.category_id)),
+        };
+
+        const r = await (
+          await fetch(`/api/products` + (id ? "/" + id : ""), {
+            method: id ? "PUT" : "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          })
+        ).json();
+        console.log(r);
+        return r;
+      }
+
+      async function loadEdit() {
+        if (!id) return;
+
+        const product = (await (await fetch("/api/products/" + id)).json()).data;
+        categories = (await (await fetch(`/api/products/${id}/categories`)).json()).data;
+        renderCategory();
+
+        for (let k of Object.keys(product)) {
+          if (!$(`input#${k}`)) continue;
+          $(`input#${k}`).value = product[k];
+        }
+
+        if (product["is_active"] == 0) {
+          $(`option#is-active-false`).selected = true;
+        }
+      }
+
+      async function searchCategory(name) {
+        let category = searchedCategories;
+        if (name) {
+          category = (await (await fetch("/api/categories?name=" + name)).json()).data;
+        }
+
+        searchedCategories = category.filter((k) => !categories.map((c) => c.category_id).includes(k.category_id));
+        $("#category-search-result").innerHTML = "";
+
+        for (let k of searchedCategories) {
+          $(`#category-search-result`).innerHTML += `<span
+              onclick="addCategory(${k.category_id}, '${k.name}')"
+              class="cursor-pointer px-2 border-b border-neutral-300 py-1 hover:bg-neutral-100"
+              >${k.name}</span>`;
+        }
+      }
+
+      $("button#btnSave").onclick = save;
+      $("input#category-search").addEventListener("input", (ev) => {
+        if (!ev.target.value || ev.target.value == "") $("#category-search-result").innerHTML = "";
+        else searchCategory(ev.target.value);
+      });
+
+      if (id) loadEdit();
+      renderCategory();
+    </script>
+  </body>
+</html>

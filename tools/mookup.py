@@ -114,7 +114,7 @@ def customer() -> str:
     name = fake.name()
     email = fake.email()
     gender = choice(['M', 'F'])
-    point = choice([0, 500, 1000, 5000])  # Normal, Silver , Gold, VIP
+    point = choices([0, 500, 1000, 5000], k=1, weights=[0.6, 0.2, 0.1, 0.1])[0]  # Normal, Silver , Gold, VIP
     birthdate = f"{randrange(2000, 2013 + 1)}-{randrange(1, 12 + 1)}-{randrange(1, 28 + 1)}"
     join_date = f"{randrange(2025, 2026 + 1)}-{randrange(1, 12 + 1)}-{randrange(1, 28 + 1)}"
 
@@ -151,7 +151,7 @@ def product() -> str:
 
 def product_category(pid: int) -> str:
     categories = [CATEGORIES[randrange(
-        1, 19 + 1)], *(choices(CATEGORIES[20:], k=randrange(2, 6)))]
+        1, 19 + 1)], *(sample(CATEGORIES[20:], k=randrange(2, 6)))]
     return f", ".join([f"({pid}, {CATEGORIES.index(c)})" for c in categories])
 
 
@@ -226,7 +226,7 @@ def main():
     sql = add(sql, "")
     sql = add(sql, "-- ## SHOP ORDER ##")
     sql = add(
-        sql, "INSERT INTO shop_order (cust_id, order_date, status, address, sub_total, discount) VALUES")
+        sql, "INSERT INTO shop_order (cust_id, order_date, status, address_id, sub_total, discount) VALUES")
     for id in range(MIN_ORDER_ID, MAX_ORDER_ID):
         sql = add(sql, shop_order(id), ",\n" if id !=
                   MAX_ORDER_ID - 1 else True)

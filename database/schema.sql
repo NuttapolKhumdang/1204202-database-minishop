@@ -83,7 +83,7 @@ CREATE TABLE shop_order (
     order_date      DATE NOT NULL DEFAULT (CURRENT_DATE),
     status          VARCHAR(8) DEFAULT 'pending',
 
-    address         INT,
+    address_id         INT,
     sub_total       DECIMAL(9, 2) NOT NULL,
     discount        DECIMAL(9, 2) NOT NULL,
 
@@ -91,7 +91,7 @@ CREATE TABLE shop_order (
     CONSTRAINT chk_order_discount       CHECK (discount >= 0),
     CONSTRAINT chk_order_status         CHECK (status IN ('pending', 'shipped', 'complete', 'cancel')),
     CONSTRAINT fk_order_cust            FOREIGN KEY (cust_id) REFERENCES customer (cust_id),
-    CONSTRAINT fk_order_address         FOREIGN KEY (address) REFERENCES address (address_id)
+    CONSTRAINT fk_order_address         FOREIGN KEY (address_id) REFERENCES address (address_id)
 );
 
 CREATE TABLE order_line (         -- M:N: shop_order × product

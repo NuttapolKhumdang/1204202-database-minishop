@@ -10,7 +10,11 @@
   --green: #2FA968;
 }
 
-* {
+html,
+body,
+input,
+button,
+a {
   box-sizing: border-box;
   margin: 0;
   padding: 0

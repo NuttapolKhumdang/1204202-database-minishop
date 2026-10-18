@@ -8,6 +8,7 @@
 #    - shop_order มี address / sub_total / discount / total (NOT NULL)
 # ============================================================
 import re
+import json
 from decimal import Decimal, InvalidOperation
 
 import mysql.connector
@@ -198,7 +199,8 @@ def search_customers(filters):
             ,   c.name
             ,   c.email
             ,   CASE c.gender WHEN 'F' THEN 'Female'
-                            WHEN 'M' THEN 'Male'
+                              WHEN 'M' THEN 'Male'
+                              ELSE c.gender
                 END AS 'gender'
             ,   t.tier
             ,   c.join_date
@@ -222,67 +224,23 @@ def get_customer(cust_id):
 
 
 def create_customer(data):
-    """INSERT customer แล้ว INSERT address (ถ้ากรอกที่อยู่) ใน transaction เดียว"""
     name, email = _text(data.get("name")), _text(data.get("email"))
     if not name or not email:
         raise ValueError("กรุณากรอกชื่อและอีเมลของลูกค้า")
-    addr = _address_from(data)          # ตรวจรูปแบบที่อยู่ก่อนเริ่มบันทึก
 
-    def work(cur):
-        cur.execute(
-            "INSERT INTO customer (name, email, gender, birthdate, tier) VALUES (%s, %s, %s, %s, %s)",
-            (name, email, blank_to_none(data.get("gender")), blank_to_none(data.get("birthdate")),
-             blank_to_none(data.get("tier")) or "normal"))
-        cust_id = cur.lastrowid
-        if addr:
-            cur.execute(
-                "INSERT INTO address (cust_id, address_type, line_1, line_2, province, postal_code) "
-                "VALUES (%s, %s, %s, %s, %s, %s)",
-                (cust_id, addr["address_type"] or "shipping", addr["line_1"], addr["line_2"],
-                 addr["province"], addr["postal_code"]))
-        return {"new_id": cust_id, "affected": 1}
+    gender = blank_to_none(data.get("gender"))
+    birthdate = blank_to_none(data.get("birthdate"))
+    point = blank_to_none(data.get("point"))
 
-    return run_transaction(work)
+    return run_command("INSERT INTO customer (name, email, gender, birthdate, point) VALUES (%s, %s, %s, %s, %s)",
+                       (name, email, gender, birthdate, point,))
 
 
 def update_customer(cust_id, data):
     """UPDATE customer (เฉพาะช่องที่ส่งมา) และ UPDATE/INSERT ที่อยู่แรก ใน transaction เดียว"""
-    sets, params = _build_set(data, skip_blank=("name", "email", "tier"),
+    sets, params = _build_set(data, skip_blank=("name", "email", "point"),
                               blank_to_null=("gender", "birthdate"))
-
-    def work(cur):
-        cur.execute(
-            "SELECT cust_id FROM customer WHERE cust_id = %s", (cust_id,))
-        if not cur.fetchall():
-            raise ValueError(f"ไม่พบลูกค้ารหัส {cust_id}")
-        affected = 0
-        if sets:
-            cur.execute(
-                f"UPDATE customer SET {sets} WHERE cust_id=%s", (*params, cust_id))
-            affected += cur.rowcount
-
-        cur.execute(f"SELECT a.address_id, a.line_1, a.line_2, a.province, a.postal_code, "
-                    f"{_ADDRESS_TEXT} AS text FROM address a "
-                    "WHERE a.cust_id = %s ORDER BY a.address_id LIMIT 1", (cust_id,))
-        old = cur.fetchone()
-        addr = _address_from(data, old)
-        if addr and old:
-            cur.execute(
-                "UPDATE address SET address_type=COALESCE(%s, address_type), line_1=%s, line_2=%s, "
-                "province=%s, postal_code=%s WHERE address_id=%s",
-                (addr["address_type"], addr["line_1"], addr["line_2"],
-                 addr["province"], addr["postal_code"], old["address_id"]))
-            affected += cur.rowcount
-        elif addr:                      # ลูกค้ายังไม่มีที่อยู่เลย → เพิ่มใหม่
-            cur.execute(
-                "INSERT INTO address (cust_id, address_type, line_1, line_2, province, postal_code) "
-                "VALUES (%s, %s, %s, %s, %s, %s)",
-                (cust_id, addr["address_type"] or "shipping", addr["line_1"], addr["line_2"],
-                 addr["province"], addr["postal_code"]))
-            affected += cur.rowcount
-        return {"new_id": None, "affected": affected}
-
-    return run_transaction(work)
+    return run_command(f"UPDATE customer SET {sets} WHERE cust_id=%s", (*params, cust_id))
 
 
 def delete_customer(cust_id):
@@ -324,18 +282,10 @@ def create_address(cust_id, data):
 
 
 def update_address(address_id, data):
-    sql = f"""
-        UPDATE address
-        SET     address_type = %s
-            ,   line_1 = %s
-            ,   line_2 = %s
-            ,   province = %s
-            ,   postal_code = %s
-        WHERE   address_id = %s
-    """
-    rows = run_command(
-        sql, (data['address_type'], data['line_1'], data['line_2'], data['province'], data['postal_code'], address_id))
-    return rows
+    sets, params = _build_set(data, skip_blank=(
+        "address_type", "line_1", "line_2", "province", "postal_code"))
+
+    return run_command(f"UPDATE address SET {sets} WHERE address_id = %s", (*params, address_id))
 
 
 def delete_address(address_id):
@@ -358,22 +308,35 @@ def _category_id(value):
     if value.isdigit():
         return int(value)
     rows = run_query(
-        "SELECT category_id FROM primary_category WHERE name = %s", (value,))
+        "SELECT category_id FROM category WHERE name = %s", (value,))
     if not rows:
         raise ValueError(f"ไม่พบหมวดหมู่ '{value}'")
     return rows[0]["category_id"]  # type: ignore
 
 
+PRODUCT_STATUS = {
+    'เลิกขาย': 0,
+    'ใช้งานอยู่': 1,
+}
+
+
 def search_products(filters):
     """ค้นหาสินค้า (ชื่อ/หมวดหมู่/ช่วงราคา) — product_id ห้ามตั้ง alias ไทย (หน้าเว็บใช้สร้าง URL)"""
     sql = """
-        SELECT p.product_id, p.name AS 'ชื่อสินค้า',
-               pc.name AS 'หมวดหมู่', p.price AS 'ราคา', p.stock AS 'จำนวนคงเหลือ'
+        SELECT  p.product_id
+            ,   p.name          AS 'ชื่อสินค้า'
+            ,   p.price         AS 'ราคา'
+            ,   p.stock         AS 'จำนวนคงเหลือ'
         FROM product p
-        LEFT JOIN primary_category pc ON p.category = pc.category_id
         WHERE 1=1
     """
+
     params = []
+
+    if filters.get("is_active") and filters.get("is_active") in PRODUCT_STATUS:
+        sql += " AND p.is_active = %s"
+        params.append(PRODUCT_STATUS[filters['is_active']])
+
     if filters.get("name"):
         sql += " AND p.name LIKE %s"
         params.append("%" + filters["name"] + "%")
@@ -400,33 +363,70 @@ def search_products(filters):
 def get_product(product_id):
     """ดึงสินค้า 1 รายการ (category = รหัสหมวดหมู่, category_name = ชื่อหมวดหมู่)"""
     sql = """
-        SELECT p.*, pc.name AS category_name
+        SELECT p.*
         FROM product p
-        LEFT JOIN primary_category pc ON p.category = pc.category_id
         WHERE p.product_id = %s
     """
     rows = run_query(sql, (product_id,))
     return rows[0] if rows else None
 
 
+def get_product_category(product_id):
+    sql = """
+        SELECT c.category_id, c.name
+        FROM product_category pc
+        INNER JOIN category c       ON c.category_id = pc.category_id
+        WHERE pc.product_id = %s
+    """
+    return run_query(sql, (product_id,))
+
+
 def create_product(data):
     """เพิ่มสินค้าใหม่ (หมวดหมู่ใส่เป็นรหัสหรือชื่อก็ได้)"""
+
+    print("data:", data)
     name = _text(data.get("name"))
     if not name:
         raise ValueError("กรุณากรอกชื่อสินค้า")
-    sql = "INSERT INTO product (name, category, price, stock) VALUES (%s, %s, %s, %s)"
-    params = (name, _category_id(data.get("category")),
-              blank_to_none(data.get("price")) or 0, blank_to_none(data.get("stock")) or 0)
-    return run_command(sql, params)
+
+    sql = "INSERT INTO product (name, price, stock) VALUES (%s, %s, %s)"
+    params = (name, blank_to_none(data.get("price")) or 0, blank_to_none(data.get("stock")) or 0)
+    product = run_command(sql, params)
+
+    if "category" in data:
+        category = json.loads(data['category'])
+        for c in category:
+            run_command(f"""
+            INSERT INTO product_category (product_id, category_id) 
+            VALUES (%s, %s) 
+        """, (product["new_id"], c,))
 
 
 def update_product(product_id, data):
     """แก้ไขสินค้าเฉพาะช่องที่ส่งมา"""
     data = dict(data)
+
     if "category" in data:
-        data["category"] = _category_id(data["category"])
-    sets, params = _build_set(data, skip_blank=("name", "price", "stock"),
-                              blank_to_null=("category",))
+        category = json.loads(data['category'])
+        run_command(f"""
+            DELETE FROM product_category 
+            WHERE product_id = %s AND category_id NOT IN ({', '.join([str(int(c)) for c in category])}) 
+        """, (product_id,))
+
+        exited_category = [c["category_id"] for c in run_query(  # type:ignore
+            "SELECT * FROM product_category WHERE product_id = %s", (product_id,))]
+
+        for c in category:
+            if c in exited_category:
+                continue
+
+            run_command(f"""
+            INSERT INTO product_category (product_id, category_id) 
+            VALUES (%s, %s) 
+        """, (product_id, c,))
+
+    sets, params = _build_set(data, skip_blank=(
+        "name", "price", "stock", "is_active"))
     if not sets:
         return {"new_id": None, "affected": 0}
     return run_command(f"UPDATE product SET {sets} WHERE product_id=%s", (*params, product_id))
@@ -435,6 +435,21 @@ def update_product(product_id, data):
 def delete_product(product_id):
     """ลบสินค้า (ถ้าเคยถูกสั่งซื้อแล้วจะลบไม่ได้ — ให้ตั้ง is_active = FALSE แทน)"""
     return run_command("DELETE FROM product WHERE product_id=%s", (product_id,))
+
+
+def get_category(filters):
+    sql = """
+        SELECT *
+        FROM category 
+        WHERE 1=1 
+    """
+
+    params = []
+    if filters.get('name'):
+        sql += " AND name LIKE %s"
+        params.append(f"%{filters["name"]}%")
+
+    return run_query(sql, (params))
 
 
 # ---------- ออเดอร์ (shop_order) ----------
@@ -446,7 +461,7 @@ def search_orders(filters):
             ,   c.name      AS 'ชื่อลูกค้า'
             ,   o.order_date AS 'วันที่สั่งซื้อ'
             ,   o.status    AS'สถานะ'
-            ,   o.total     AS'ยอดสุทธิ' 
+            ,   o.sub_total - o.discount AS'ยอดสุทธิ' 
         FROM shop_order o 
         JOIN customer c ON c.cust_id = o.cust_id
         WHERE 1=1"""
@@ -563,78 +578,6 @@ def delete_order(order_id):
 #  ★ ชื่อคอลัมน์ใน SELECT จะกลายเป็นหัวตารางบนเว็บ — ใช้ AS 'ชื่อภาษาไทย' ได้
 #  ★ ORDER BY ชื่อ alias ต้องครอบด้วย backtick (`ชื่อ`) ห้ามใช้ 'ชื่อ' เพราะ MySQL จะมองเป็นข้อความคงที่ (ไม่เรียงจริง)
 # ============================================================
-def report_summary():
-    """สรุปตัวเลขรวมของร้าน (จำนวนลูกค้า/สินค้า/ออเดอร์/รีวิว ยอดขาย คะแนนเฉลี่ย) — คืน 1 แถว"""
-    sql = """SELECT
-          (SELECT COUNT(*) FROM customer) AS 'ลูกค้า',
-          (SELECT COUNT(*) FROM product) AS 'สินค้า',
-          (SELECT COUNT(*) FROM shop_order) AS 'ออเดอร์',
-          (SELECT COUNT(*) FROM review) AS 'รีวิว',
-          (SELECT SUM(qty * unit_price) FROM order_line) AS 'ยอดขายรวม (บาท)',
-          (SELECT ROUND(AVG(rating), 2) FROM review) AS 'คะแนนรีวิวเฉลี่ย'
-          """
-    return run_query(sql)[0]
-
-
-def report_best_selling():
-    """สินค้าขายดี 5 อันดับแรก (เรียงตามจำนวนที่ขายได้)"""
-    sql = """
-    SELECT p.product_id as 'รหัสสินค้า', p.name as 'ชื่อสินค้า', pc.name as 'หมวดหมู่',
-           SUM(ol.qty) AS 'จำนวนที่ขาย',
-           SUM(ol.qty * ol.unit_price) AS 'ยอดขายรวม'
-    FROM order_line AS ol
-    INNER JOIN product AS p ON ol.product_id = p.product_id
-    LEFT JOIN primary_category AS pc ON p.category = pc.category_id
-    GROUP BY p.product_id, p.name, pc.name
-    ORDER BY `จำนวนที่ขาย` DESC, p.product_id
-    LIMIT 5
-    """
-    return run_query(sql)
-
-
-def report_customers_above_avg():
-    """ลูกค้าที่ยอดซื้อรวมสูงกว่าค่าเฉลี่ย (เทียบกับลูกค้าที่เคยสั่งซื้อ) เรียงจากมากไปน้อย"""
-    sql = """
-    SELECT c.cust_id as 'รหัสลูกค้า', c.name as 'ชื่อลูกค้า',
-           SUM(ol.qty * ol.unit_price) AS 'ยอดซื้อรวม'
-    FROM customer AS c
-    INNER JOIN shop_order AS so
-        ON c.cust_id = so.cust_id
-    INNER JOIN order_line AS ol
-        ON so.order_id = ol.order_id
-    GROUP BY c.cust_id, c.name
-    HAVING SUM(ol.qty * ol.unit_price) > (
-        SELECT AVG(customer_total)
-        FROM (
-            SELECT SUM(ol2.qty * ol2.unit_price) AS customer_total
-            FROM shop_order AS so2
-            INNER JOIN order_line AS ol2
-                ON so2.order_id = ol2.order_id
-            GROUP BY so2.cust_id
-        ) AS totals
-    )
-    ORDER BY `ยอดซื้อรวม` DESC
-    """
-    return run_query(sql)
-
-
-def report_high_rated():
-    """สินค้าที่คะแนนรีวิวเฉลี่ย ≥ 4 (รีวิวผูกกับออเดอร์ จึงนับให้ทุกสินค้าในออเดอร์นั้น)"""
-    sql = """
-    SELECT p.product_id as 'รหัสสินค้า', p.name as 'ชื่อสินค้า',
-           ROUND(AVG(r.rating), 1) AS 'คะแนนเฉลี่ย',
-           COUNT(r.rating) AS 'จำนวนรีวิว'
-    FROM review AS r
-    INNER JOIN order_line AS ol
-        ON r.order_id = ol.order_id
-    INNER JOIN product AS p
-        ON ol.product_id = p.product_id
-    GROUP BY p.product_id, p.name
-    HAVING AVG(r.rating) >= 4
-    ORDER BY `คะแนนเฉลี่ย` DESC
-    """
-    return run_query(sql)
-
 
 interval_map = {
     "1d": "1 DAY",
@@ -760,13 +703,6 @@ def summary_high_rated(filters):
 #  ★ รายการนี้ต้องอยู่ท้ายไฟล์ (หลังฟังก์ชันทั้งหมด) ไม่งั้น Python หาชื่อฟังก์ชันไม่เจอ
 #  ★ ห้ามตั้งชื่อ url ว่า "summary" (ใช้แล้วสำหรับการ์ดสรุป)
 # ============================================================
-REPORTS = [
-    ("best-selling",  " สินค้าขายดี (Best Sellers) 📈",  report_best_selling),
-    ("top-customers", " ลูกค้าที่ซื้อมากกว่าค่าเฉลี่ย (Above Average) 🏅",
-     report_customers_above_avg),
-    ("high-rated",    "⭐ สินค้าคะแนนรีวิวเฉลี่ย ≥ 4 (HAVING)", report_high_rated)
-]
-
 SUMMARY = [
     ("best-selling",  " สินค้าขายดี (Best Sellers) 📈", summary_best_selling),
     ("top-customers", " ลูกค้าที่ซื้อมากกว่าค่าเฉลี่ย (Above Average) 🏅",

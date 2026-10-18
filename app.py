@@ -52,6 +52,16 @@ def page_customer(_id: int):
     return render_template("customer.html", id=_id)
 
 
+@app.route("/product")
+def page_product_create():
+    return render_template("product.html", id='')
+
+
+@app.route("/product/<int:_id>")
+def page_product_update(_id: int):
+    return render_template("product.html", id=_id)
+
+
 # ---- ลูกค้า ----
 @app.route("/api/customers", methods=["GET"])
 def customers_list():
@@ -93,9 +103,11 @@ def address_post(cust_id):
 def address_get(cust_id, address_id):
     return safe(db.get_address, address_id)
 
+
 @app.route("/api/customers/<int:cust_id>/address/<int:address_id>", methods=["PUT"])
 def address_put(cust_id, address_id):
     return safe(db.update_address, address_id, request.json)
+
 
 @app.route("/api/customers/<int:cust_id>/address/<int:address_id>", methods=["DELETE"])
 def address_delete(cust_id, address_id):
@@ -143,6 +155,18 @@ def product_update(_id):
 @app.route("/api/products/<int:_id>", methods=["DELETE"])
 def product_delete(_id):
     return safe(db.delete_product, _id)
+
+
+@app.route("/api/products/<int:_id>/categories", methods=["GET"])
+def product_category_get(_id):
+    return safe(db.get_product_category, _id)
+
+
+@app.route("/api/categories", methods=["GET"])
+def category_get():
+    filters = {k: v for k, v in request.args.items() if v}
+    return safe(db.get_category, filters)
+
 
 # ---- ออเดอร์ ----
 
