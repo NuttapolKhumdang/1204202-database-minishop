@@ -161,7 +161,9 @@ const ENTITIES = {
         "type": "select",
         "options": [
           "pending",
-          "shipped"
+          "shipped",
+          "complete",
+          "cancel"
         ]
       }
     ]
@@ -169,6 +171,7 @@ const ENTITIES = {
 };
 
 let current = Object.keys(ENTITIES)[0];
+let lastId = -1;
 let editingId = null;
 const $ = (s) => document.querySelector(s);
 function setStatus(el, msg, cls = "") { el.className = "status " + cls; el.textContent = msg; }
@@ -218,7 +221,10 @@ function renderTable(r) {
   head.innerHTML = ""; body.innerHTML = "";
   if (!r.ok) { setStatus(st, (r.todo ? "🚧 " : "⚠️ ") + r.error, r.todo ? "todo" : "err"); return; }
   const rows = r.data || [];
-  if (rows.length === 0) { setStatus(st, "ไม่พบข้อมูล"); return; }
+  if (rows.length === 0) { setStatus(st, "ไม่พบข้อมูล"); lastId = -1; return; }
+  lastId = rows[rows.length - 1][ENTITIES[current].idKey];
+  console.log({lastId});
+  
   setStatus(st, "พบ " + rows.length + " รายการ");
   const cols = Object.keys(rows[0]);
   head.innerHTML = cols.map(c => "<th>" + c + "</th>").join("") + "<th>จัดการ</th>";
@@ -229,6 +235,7 @@ function renderTable(r) {
       + (current === 'customers' ? `<button class="btn sm" onclick="editRow('${id}')">แก้ไข</button>` : "")
       + (current === 'customers' ? `<a class="btn sm" href="/customer/${id}">ที่อยู่</a>` : "")
       + (current === 'products' ? `<a class="btn sm" href="/product/${id}">แก้ไข</a>` : "")
+      + (current === 'orders' ? `<a class="btn sm" href="/order/${id}">แก้ไข</a>` : "")
       + '<button class="btn sm del" onclick="deleteRow(' + id + ')">ลบ</button></td></tr>';
   }).join("");
 }
@@ -237,7 +244,7 @@ async function openForm(title, data = {}) {
     window.location.href = ENTITIES[current].add;
     return;
   }
-  
+
   await loadOptions(formFields(), false);
   $("#modalTitle").textContent = title;
   $("#formFields").innerHTML = formFields().map(f => fieldHtml(f, "f_", data[f.key])).join("");
@@ -262,6 +269,10 @@ async function save() {
   const r = await api(editingId ? cfg.api + "/" + editingId : cfg.api, opts);
   if (!r.ok) { alert((r.todo ? "🚧 " : "⚠️ ") + r.error); return; }
   $("#modal").classList.add("hidden"); doSearch();
+
+  if (current == "orders") {
+    window.location.href = "/order/" + (lastId + 1);
+  }
 }
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
   document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));

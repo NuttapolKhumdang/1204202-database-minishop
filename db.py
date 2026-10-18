@@ -469,7 +469,7 @@ def search_orders(filters):
 
     params = []
     if filters.get("cust_id"):
-        sql += " AND cust_id = %s"
+        sql += " AND c.cust_id = %s"
         params.append(filters["cust_id"])
 
     if filters.get("status"):
@@ -535,19 +535,18 @@ def create_order(data):
     cust_id = blank_to_none(data.get("cust_id"))
     if cust_id is None:
         raise ValueError("กรุณาระบุรหัสลูกค้า")
-    sub_total = _money(data.get("sub_total"))
-    discount = _money(data.get("discount"))
-    total = _money(data.get("total"), default=sub_total -
-                   discount)  # type: ignore
 
     sql = """
-        INSERT INTO shop_order (cust_id, order_date, status, address, sub_total, discount, total)
-        VALUES (%s, COALESCE(%s, CURRENT_DATE), COALESCE(%s, 'pending'),
-                COALESCE(%s, (SELECT MIN(address_id) FROM address WHERE cust_id = %s)),
-                %s, %s, %s)
+        INSERT INTO shop_order (cust_id, order_date, status, sub_total, discount)
+        VALUES (%s, %s, %s, 0, 0)
     """
-    params = (cust_id, blank_to_none(data.get("order_date")), blank_to_none(data.get("status")),
-              blank_to_none(data.get("address")), cust_id, sub_total, discount, total)
+
+    params = (
+        cust_id,
+        blank_to_none(data.get("order_date")),
+        blank_to_none(data.get("status"))
+    )
+
     return run_command(sql, params)
 
 
@@ -565,8 +564,9 @@ def update_order(order_id, data):
             raise ValueError(msg)
 
     # อัปเดตเฉพาะช่องที่ส่งมา (ช่องว่าง = ไม่แก้)
-    sets, params = _build_set(data, skip_blank=("cust_id", "order_date", "status", "address",
-                                                "sub_total", "discount", "total"))
+    sets, params = _build_set(data, skip_blank=(
+        "order_date", "status", "address_id"))
+
     if not sets:
         return {"new_id": None, "affected": 0}
     return run_command(f"UPDATE shop_order SET {sets} WHERE order_id=%s", (*params, order_id))
