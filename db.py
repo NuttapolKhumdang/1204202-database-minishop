@@ -607,11 +607,26 @@ def create_order_line(order_id, data):
         """, (order_id, data['product_id']))
 
         cur.execute("""
-            UPDATE shop_order
-            SET sub_total = COALESCE((SELECT SUM(ol.qty * ol.unit_price)
-            FROM order_line ol
-            WHERE ol.order_id = shop_order.order_id), 0);
-        """)
+            UPDATE  shop_order
+            SET     shop_order.sub_total = COALESCE(
+                            (   SELECT SUM(ol.qty * ol.unit_price)
+                                FROM    order_line ol
+                                WHERE   ol.order_id = shop_order.order_id
+                            ), 0)
+            WHERE   order_id = %s
+        """, (order_id, ))
+
+        cur.execute("""
+            UPDATE 	shop_order
+            JOIN 	vw_customer_tier ON vw_customer_tier.cust_id = shop_order.cust_id
+            SET		discount = sub_total * (CASE 
+                                                WHEN vw_customer_tier.tier = 'vip' 								THEN 0.15
+                                                WHEN vw_customer_tier.tier = 'gold' 	AND sub_total >= 500 	THEN 0.10
+                                                WHEN vw_customer_tier.tier = 'silver' 	AND sub_total >= 500 	THEN 0.05
+                                                WHEN vw_customer_tier.tier = 'normal' 							THEN 0
+                                            END)
+            WHERE 	order_id = %s
+        """, (order_id, ))
 
     return run_transaction(work)
 
@@ -636,12 +651,26 @@ def delete_order_line(order_id, pid):
         """, (qty, pid, ))
 
         cur.execute("""
-            UPDATE shop_order
-            SET sub_total = COALESCE((SELECT SUM(ol.qty * ol.unit_price)
-            FROM order_line ol
-            WHERE ol.order_id = shop_order.order_id), 0);
-        """)
+            UPDATE  shop_order
+            SET     shop_order.sub_total = COALESCE(
+                            (   SELECT SUM(ol.qty * ol.unit_price)
+                                FROM    order_line ol
+                                WHERE   ol.order_id = shop_order.order_id
+                            ), 0)
+            WHERE   order_id = %s
+        """, (order_id, ))
 
+        cur.execute("""
+            UPDATE 	shop_order
+            JOIN 	vw_customer_tier ON vw_customer_tier.cust_id = shop_order.cust_id
+            SET		discount = sub_total * (CASE 
+                                                WHEN vw_customer_tier.tier = 'vip' 								THEN 0.15
+                                                WHEN vw_customer_tier.tier = 'gold' 	AND sub_total >= 500 	THEN 0.10
+                                                WHEN vw_customer_tier.tier = 'silver' 	AND sub_total >= 500 	THEN 0.05
+                                                WHEN vw_customer_tier.tier = 'normal' 							THEN 0
+                                            END)
+            WHERE 	order_id = %s;
+        """, (order_id, ))
     return run_transaction(work)
 
 
