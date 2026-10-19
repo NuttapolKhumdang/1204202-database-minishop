@@ -302,22 +302,6 @@ def delete_address(address_id):
     rows = run_command(sql, (address_id,))
     return rows
 
-# ---------- สินค้า (product) ----------
-
-
-def _category_id(value):
-    """แปลงหมวดหมู่ที่ส่งมา (รหัสหรือชื่อ) เป็น category_id — ว่าง → None, ไม่พบชื่อ → error"""
-    value = _text(value)
-    if value is None:
-        return None
-    if value.isdigit():
-        return int(value)
-    rows = run_query(
-        "SELECT category_id FROM category WHERE name = %s", (value,))
-    if not rows:
-        raise ValueError(f"ไม่พบหมวดหมู่ '{value}'")
-    return rows[0]["category_id"]  # type: ignore
-
 
 PRODUCT_STATUS = {
     'เลิกขาย': 0,
