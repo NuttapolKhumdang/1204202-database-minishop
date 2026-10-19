@@ -77,7 +77,7 @@
           </div>
         </div>
 
-        <nav class="form-section flex flex-col gap-4">
+        <nav id="order-editor-adder" class="form-section flex flex-col gap-4">
           <span class="font-bold text-xl">เพิ่มสินค้า</span>
 
           <section class="grid grid-cols-4 gap-2">
@@ -107,8 +107,8 @@
 
     async function loadEdit() {
       if (!id) return;
-      await renderOrders();
       await renderOrderLines();
+      await renderOrders();
     }
 
     if (id) loadEdit();
@@ -133,6 +133,11 @@
         $("#addresses").innerHTML += template;
       }
 
+
+      if (order.status != "pending") {
+        $('#order-editor-adder').classList.add("hidden");
+        document.querySelectorAll("#btn-remove-order-lines").forEach(e => e.classList.add("hidden"))
+      }
     }
 
     async function renderOrderLines() {
@@ -162,7 +167,7 @@
               </section>
 
               <menu class="flex flex-row items-center gap-4">
-                  <button class="btn" onclick="removeLine('${k.product_id}')">ลบ</button>
+                  <button class="btn" id="btn-remove-order-lines" onclick="removeLine('${k.product_id}')">ลบ</button>
               </menu>
             </div>
             `;
