@@ -57,8 +57,8 @@
             </select>
           </label>
         </div>
-
         <button id="btnSave" class="btn primary">บันทึก</button>
+        <button id="btnCancel" class="btn flex-1">ยกเลิก</button>
       </section>
     </main>
 
@@ -156,6 +156,9 @@
       }
 
       $("button#btnSave").onclick = save;
+      $("button#btnCancel").onclick = () => {
+        if (confirm("ยกเลิกการแก้ไข?")) window.location.href = "/";
+      };
       $("input#category-search").addEventListener("input", (ev) => {
         if (!ev.target.value || ev.target.value == "") $("#category-search-result").innerHTML = "";
         else searchCategory(ev.target.value);
