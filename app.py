@@ -29,11 +29,14 @@ def safe(fn, *args, **kwargs):
     try:
         return jsonify({"ok": True, "data": fn(*args, **kwargs)})
     except NotImplementedError as e:
+        print(e)
         return jsonify({"ok": False, "todo": True, "error": str(e)}), 501
     except ValueError as e:
         # ข้อผิดพลาดที่ db.py ตั้งใจแจ้งผู้ใช้ เช่น raise ValueError("คลาสนี้เต็มแล้ว")
+        print(e)
         return jsonify({"ok": False, "error": str(e)}), 400
     except Exception as e:
+        print(e)
         return jsonify({"ok": False, "error": f"{type(e).__name__}: {e}"}), 500
 
 
@@ -220,6 +223,58 @@ def orders_line_create(oid):
 @app.route("/api/orders/<int:oid>/lines/<int:pid>", methods=["DELETE"])
 def orders_line_delete(oid, pid):
     return safe(db.delete_order_line, oid, pid)
+
+
+@app.route("/api/payments", methods=["GET"])
+def payment_search():
+    filters = {k: v for k, v in request.args.items() if v}
+    return safe(db.search_payment, filters)
+
+
+@app.route("/api/payments/<int:_id>", methods=["GET"])
+def payment_get(_id):
+    return safe(db.get_payment, _id)
+
+
+@app.route("/api/payments", methods=["POST"])
+def payment_create():
+    return safe(db.create_payment, request.json)
+
+
+@app.route("/api/payments/<int:_id>", methods=["PUT"])
+def payment_update(_id):
+    return safe(db.update_payment, _id, request.json)
+
+
+@app.route("/api/payments/<int:_id>", methods=["DELETE"])
+def payment_delete(_id):
+
+    return safe(db.delete_payment, _id)
+
+@app.route("/api/reviews", methods=["GET"])
+def review_search():
+    filters = {k: v for k, v in request.args.items() if v}
+    return safe(db.search_review, filters)
+
+
+@app.route("/api/reviews/<int:_id>", methods=["GET"])
+def review_get(_id):
+    return safe(db.get_review, _id)
+
+
+@app.route("/api/reviews", methods=["POST"])
+def review_create():
+    return safe(db.create_review, request.json)
+
+
+@app.route("/api/reviews/<int:_id>", methods=["PUT"])
+def review_update(_id):
+    return safe(db.update_review, _id, request.json)
+
+
+@app.route("/api/reviews/<int:_id>", methods=["DELETE"])
+def review_delete(_id):
+    return safe(db.delete_review, _id)
 
 
 # ---- รายงาน ----

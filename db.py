@@ -447,13 +447,16 @@ def search_orders(filters):
     """ค้นหาออเดอร์ (รหัสลูกค้า/สถานะ/ช่วงวันที่) — order_id ห้ามตั้ง alias ไทย (หน้าเว็บใช้สร้าง URL)"""
     sql = """
         SELECT  o.order_id
-            ,   c.cust_id   AS 'รหัสลูกค้า'
-            ,   c.name      AS 'ชื่อลูกค้า'
-            ,   o.order_date AS 'วันที่สั่งซื้อ'
-            ,   o.status    AS'สถานะ'
-            ,   o.sub_total - o.discount AS'ยอดสุทธิ' 
-        FROM shop_order o 
-        JOIN customer c ON c.cust_id = o.cust_id
+            ,   c.cust_id                   AS 'รหัสลูกค้า'
+            ,   c.name                      AS 'ชื่อลูกค้า'
+            ,   o.order_date                AS 'วันที่สั่งซื้อ'
+            ,   o.status                    AS 'สถานะ'
+            ,   (o.sub_total - o.discount)  AS 'ยอดสุทธิ'
+            ,   SUM(p.amount)                    AS 'ชำระแล้ว'
+        FROM    shop_order o 
+        JOIN    customer c ON c.cust_id = o.cust_id
+    LEFT JOIN   payment  p ON p.order_id = o.order_id
+
         WHERE 1=1"""
 
     params = []
@@ -473,6 +476,7 @@ def search_orders(filters):
         sql += " AND order_date <= %s"
         params.append(filters["end_date"])
 
+    sql += " GROUP BY    o.order_id, 'รหัสลูกค้า', 'ชื่อลูกค้า', 'วันที่สั่งซื้อ', 'สถานะ', 'ยอดสุทธิ'"
     sql += " ORDER BY order_id"
     return run_query(sql, tuple(params))
 
@@ -608,32 +612,31 @@ def create_order_line(order_id, data):
 
         cur.execute("""
             UPDATE  shop_order
-            SET     shop_order.sub_total = COALESCE(
+            SET     sub_total = IFNULL(COALESCE(
                             (   SELECT SUM(ol.qty * ol.unit_price)
                                 FROM    order_line ol
                                 WHERE   ol.order_id = shop_order.order_id
-                            ), 0)
+                            ), 0), 0)
             WHERE   order_id = %s
         """, (order_id, ))
 
         cur.execute("""
             UPDATE 	shop_order
             JOIN 	vw_customer_tier ON vw_customer_tier.cust_id = shop_order.cust_id
-            SET		discount = sub_total * (CASE 
+            SET		discount = IFNULL(sub_total * (CASE 
                                                 WHEN vw_customer_tier.tier = 'vip' 								THEN 0.15
                                                 WHEN vw_customer_tier.tier = 'gold' 	AND sub_total >= 500 	THEN 0.10
                                                 WHEN vw_customer_tier.tier = 'silver' 	AND sub_total >= 500 	THEN 0.05
                                                 WHEN vw_customer_tier.tier = 'normal' 							THEN 0
-                                            END)
-            WHERE 	order_id = %s
+                                            END), 0)
+            WHERE 	order_id = %s;
         """, (order_id, ))
-
     return run_transaction(work)
 
 
 def delete_order_line(order_id, pid):
     def work(cur):
-        cur.execute("""
+        cur.execute("""	526.30
             SELECT qty FROM order_line
             WHERE       order_id = %s AND product_id = %s
         """, (order_id, pid, ))
@@ -652,26 +655,103 @@ def delete_order_line(order_id, pid):
 
         cur.execute("""
             UPDATE  shop_order
-            SET     shop_order.sub_total = COALESCE(
+            SET     sub_total = IFNULL(COALESCE(
                             (   SELECT SUM(ol.qty * ol.unit_price)
                                 FROM    order_line ol
                                 WHERE   ol.order_id = shop_order.order_id
-                            ), 0)
+                            ), 0), 0)
             WHERE   order_id = %s
         """, (order_id, ))
 
         cur.execute("""
             UPDATE 	shop_order
             JOIN 	vw_customer_tier ON vw_customer_tier.cust_id = shop_order.cust_id
-            SET		discount = sub_total * (CASE 
+            SET		discount = IFNULL(sub_total * (CASE 
                                                 WHEN vw_customer_tier.tier = 'vip' 								THEN 0.15
                                                 WHEN vw_customer_tier.tier = 'gold' 	AND sub_total >= 500 	THEN 0.10
                                                 WHEN vw_customer_tier.tier = 'silver' 	AND sub_total >= 500 	THEN 0.05
                                                 WHEN vw_customer_tier.tier = 'normal' 							THEN 0
-                                            END)
+                                            END), 0)
             WHERE 	order_id = %s;
         """, (order_id, ))
     return run_transaction(work)
+
+
+# --  Payment
+
+def search_payment(filters):
+    return run_query("SELECT * FROM payment")
+
+
+def get_payment(payment_id):
+    row = run_query(
+        "SELECT * FROM payment WHERE payment_id = %s", (payment_id,))
+    return row[0] if row else None
+
+
+def create_payment(data):
+    sql = """INSERT INTO payment (order_id, method, amount, paid_date) VALUES (%s, %s, %s, %s)"""
+
+    order_id = data['order_id']
+    method = data['method']
+    amount = data['amount']
+    paid_date = data['paid_date']
+
+    return run_command(sql, (order_id, method, amount, paid_date,))
+
+
+def update_payment(payment_id, data):
+    sets, params = _build_set(data, skip_blank=(
+        "order_id", "method", "amount", "paid_date"))
+    sql = f"""UPDATE payment SET {sets} WHERE payment_id = %s"""
+    return run_command(sql, (*params, payment_id))
+
+
+def delete_payment(payment_id):
+    return run_command("DELETE FROM payment WHERE payment_id = %s", (payment_id,))
+
+
+# --  Review
+
+def search_review(filters):
+    return run_query("""
+        SELECT  r.review_id
+            ,   c.name                  AS customer_name
+            ,   p.name                  AS product_name
+            ,   r.rating
+            ,   r.comment
+        FROM    review r
+        JOIN    customer c ON c.cust_id     = r.cust_id
+        JOIN    product  p ON p.product_id  = r.product_id
+    """)
+
+
+def get_review(review_id):
+    row = run_query("SELECT * FROM review WHERE review_id = %s", (review_id,))
+    return row[0] if row else None
+
+
+def create_review(data):
+    sql = """INSERT INTO review (cust_id, order_id, product_id, rating, comment) VALUES (%s, %s, %s, %s, %s)"""
+
+    cust_id = data['cust_id']
+    order_id = data['order_id']
+    product_id = data['product_id']
+    rating = data['rating']
+    comment = data['comment']
+
+    return run_command(sql, (cust_id, order_id, product_id, rating, comment, ))
+
+
+def update_review(review_id, data):
+    sets, params = _build_set(data, skip_blank=(
+        "order_id", "method", "amount", "paid_date"))
+    sql = f"""UPDATE review SET {sets} WHERE review_id = %s"""
+    return run_command(sql, (*params, review_id))
+
+
+def delete_review(review_id):
+    return run_command("DELETE FROM review WHERE review_id = %s", (review_id,))
 
 
 # ============================================================
