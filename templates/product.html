@@ -113,7 +113,10 @@
           ).json();
 
           console.log(r);
-          if (r.ok) alert("บันทึกสำเร็จ");
+          if (r.ok) {
+            alert("บันทึกสำเร็จ");
+            window.location.href = "/";
+          }
           else alert(r.error);
         } catch (e) {
           console.error(e);
@@ -155,7 +158,7 @@
         }
       }
 
-      $("button#btnSave").onclick = save;
+      $("button#btnSave").onclick = save ;
       $("button#btnCancel").onclick = () => {
         if (confirm("ยกเลิกการแก้ไข?")) window.location.href = "/";
       };

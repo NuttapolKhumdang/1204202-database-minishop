@@ -772,7 +772,7 @@ def summary_high_rated(filters):
     WHERE 1=1 {_since("r.review_date", range_val)}
     GROUP BY p.product_id, p.name
     HAVING AVG(r.rating) >= 4
-    ORDER BY `คะแนนเฉลี่ย` DESC
+    ORDER BY `คะแนนเฉลี่ย` DESC 
     """
     return run_query(sql)
 
