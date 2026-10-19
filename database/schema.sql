@@ -111,6 +111,7 @@ CREATE TABLE order_line (         -- M:N: shop_order × product
 
 CREATE TABLE review (             -- M:N: customer × product
     -- TODO: cust_id (FK), product_id (FK), rating, comment, review_date ; PRIMARY KEY (cust_id, product_id)
+	review_id		INT AUTO_INCREMENT PRIMARY KEY,
     cust_id         INT, 
     order_id        INT,
     product_id      INT,
@@ -119,7 +120,6 @@ CREATE TABLE review (             -- M:N: customer × product
     review_date     DATE DEFAULT (CURRENT_DATE),
 
     CONSTRAINT chk_review_rating    CHECK (rating BETWEEN 1 AND 5),
-    CONSTRAINT pk_review            PRIMARY KEY (cust_id, order_id, product_id),
     CONSTRAINT fk_review_cust       FOREIGN KEY (cust_id) REFERENCES customer (cust_id),
     CONSTRAINT fk_review_order      FOREIGN KEY (order_id) REFERENCES shop_order (order_id),
     CONSTRAINT fk_review_product    FOREIGN KEY (product_id) REFERENCES product (product_id)
