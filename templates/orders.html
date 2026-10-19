@@ -128,7 +128,7 @@
       $("#addresses").innerHTML = order.address_id ? "" : "<option></option>";
 
       for (let a of addresses) {
-        let address = `${a.line_1} ${a.line_2 ?? ""} ${a.province} ${a.postal_code}`;
+        let address = `${a['ที่อยู่1']} ${a['ที่อยู่2'] ?? ""} ${a['จังหวัด']} ${a['รหัสไปรษณีย์']}`;
         let template = `<option id="address-id-${a.address_id}" value="${a.address_id}">${address}</option>`
         $("#addresses").innerHTML += template;
       }
