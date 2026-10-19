@@ -87,12 +87,20 @@
       (async () => {
         const c = await fetch("/api/customers/{{ id }}", { method: "GET" });
         const customer = (await c.json()).data;
+        const labels = {
+          cust_id: "รหัสลูกค้า",
+          email: "อีเมล",
+          gender: "เพศ",
+          birthdate: "วันเกิด",
+          point: "คะแนน",
+          join_date: "วันที่สมัคร",
+        };
 
         $("h1#name").innerHTML = customer.name;
 
         for (let k of Object.keys(customer)) {
           if (k == "name") continue;
-          $("ul#details").innerHTML += `<li class="flex flex-row items-baseline"><span class="min-w-24 text-sm">${k}</span><p class="text-xl">${customer[k]}</p><li>`;
+          $("ul#details").innerHTML += `<li class="flex flex-row items-baseline"><span class="min-w-24 text-sm">${labels[k] || k}</span><p class="text-xl">${customer[k]}</p><li>`;
         }
       })();
 

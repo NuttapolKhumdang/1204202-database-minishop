@@ -253,7 +253,12 @@ def delete_customer(cust_id):
 
 def get_customer_address(cust_id):
     sql = f"""
-        SELECT *
+        SELECT a.address_id,
+               a.address_type AS ประเภท,
+               a.line_1       AS ที่อยู่1,
+               a.line_2       AS ที่อยู่2,
+               a.province     AS จังหวัด,
+               a.postal_code  AS รหัสไปรษณีย์
         FROM address a
         WHERE a.cust_id = %s
     """
@@ -264,7 +269,7 @@ def get_customer_address(cust_id):
 def get_address(address_id):
     sql = f"""
         SELECT *
-        FROM address a
+        FROM address a 
         WHERE a.address_id = %s
     """
     rows = run_query(sql, (address_id,))
