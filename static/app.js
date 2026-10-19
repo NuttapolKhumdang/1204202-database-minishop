@@ -167,6 +167,93 @@ const ENTITIES = {
         ]
       }
     ]
+  },
+  "payments": {
+    "label": "จ่ายเงิน",
+    "api": "/api/payments",
+    "idKey": "payment_id",
+    "search": [
+      {
+        "key": "payment_id",
+        "label": "รหัสการชำระเงิน",
+        "type": "number"
+      }
+    ],
+    "form": [
+      {
+        "key": "order_id",
+        "label": "คำสั่งซื้อ",
+        "type": "number"
+      },
+      {
+        "key": "method",
+        "label": "วิธีการชำระ",
+        "type": "select",
+        "options": [
+          "credit card",
+          "online banking",
+        ]
+      },
+      {
+        "key": "amount",
+        "label": "จำนวนเงิน",
+        "type": "number"
+      },
+      {
+        "key": "paid_date",
+        "label": "วันที่ชำระ",
+        "type": "date"
+      },
+    ]
+  },
+  "reviews": {
+    "label": "จ่ายเงิน",
+    "api": "/api/reviews",
+    "idKey": "review_id",
+    "search": [
+      {
+        "key": "review_id",
+        "label": "รีวิว",
+        "type": "number"
+      }
+    ],
+    "form": [
+      {
+        "key": "order_id",
+        "label": "รหัสคำสั่งซื้อ",
+        "type": "number"
+      },
+      {
+        "key": "cust_id",
+        "label": "ลูกค้า",
+        "type": "select",
+        "optionsFrom": {
+          "api": "/api/customers",
+          "value": "cust_id",
+          "label": "name"
+        }
+      },
+      {
+        "key": "product_id",
+        "label": "สินค้า",
+        "type": "select",
+        "optionsFrom": {
+          "api": "/api/products",
+          "value": "product_id",
+          "label": "name"
+        }
+      },
+      {
+        "key": "rating",
+        "label": "ความพอใจ",
+        "type": "number",
+      },
+      {
+        "key": "comment",
+        "label": "ความคิดเห็น",
+        "type": "text"
+      }
+    ]
   }
 };
 
@@ -223,8 +310,8 @@ function renderTable(r) {
   const rows = r.data || [];
   if (rows.length === 0) { setStatus(st, "ไม่พบข้อมูล"); lastId = -1; return; }
   lastId = rows[rows.length - 1][ENTITIES[current].idKey];
-  console.log({lastId});
-  
+  console.log({ lastId });
+
   setStatus(st, "พบ " + rows.length + " รายการ");
   const cols = Object.keys(rows[0]);
   head.innerHTML = cols.map(c => "<th>" + c + "</th>").join("") + "<th>จัดการ</th>";
@@ -236,6 +323,7 @@ function renderTable(r) {
       + (current === 'customers' ? `<a class="btn sm" href="/customer/${id}">ที่อยู่</a>` : "")
       + (current === 'products' ? `<a class="btn sm" href="/product/${id}">แก้ไข</a>` : "")
       + (current === 'orders' ? `<a class="btn sm" href="/order/${id}">แก้ไข</a>` : "")
+      + (current === 'payments' ? `<button class="btn sm" onclick="editRow('${id}')">แก้ไข</button>` : "")
       + '<button class="btn sm del" onclick="deleteRow(' + id + ')">ลบ</button></td></tr>';
   }).join("");
 }
@@ -269,10 +357,6 @@ async function save() {
   const r = await api(editingId ? cfg.api + "/" + editingId : cfg.api, opts);
   if (!r.ok) { alert((r.todo ? "🚧 " : "⚠️ ") + r.error); return; }
   $("#modal").classList.add("hidden"); doSearch();
-
-  if (current == "orders") {
-    window.location.href = "/order/" + (lastId + 1);
-  }
 }
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
   document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
