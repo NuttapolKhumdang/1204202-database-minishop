@@ -344,7 +344,7 @@ def search_products(filters):
 
         if filters.get("is_active") in PRODUCT_STATUS:
             params.append(PRODUCT_STATUS[filters['is_active']])
-        
+
         if (filters.get("is_active") in ['0', '1']):
             params.append(filters['is_active'])
 
@@ -971,6 +971,57 @@ def summary_high_rated(filters):
     return run_query(sql)
 
 
+def summary_low_rated(filters):
+    range_val = filters.get("range") if isinstance(filters, dict) else filters
+
+    sql = f"""
+    SELECT p.product_id as 'รหัสสินค้า', p.name as 'ชื่อสินค้า',
+           ROUND(AVG(r.rating), 1) AS 'คะแนนเฉลี่ย',
+           COUNT(r.rating) AS 'จำนวนรีวิว'
+    FROM review AS r
+    INNER JOIN order_line AS ol
+        ON r.order_id = ol.order_id
+    INNER JOIN product AS p
+        ON ol.product_id = p.product_id
+    WHERE 1=1 {_since("r.review_date", range_val)}
+    GROUP BY p.product_id, p.name
+    HAVING AVG(r.rating) < 2
+    ORDER BY `คะแนนเฉลี่ย` DESC 
+    """
+    return run_query(sql)
+
+
+def summary_most_interactive_customer(filters):
+    range_val = filters.get("range") if isinstance(filters, dict) else filters
+
+    sql = f"""    
+    SELECT  c.cust_id
+        ,   c.name              AS customer_name
+        ,   c.email
+        ,   COUNT(r.cust_id)    AS review_count
+    FROM    customer c
+    JOIN    review r    ON r.cust_id = c.cust_id
+    WHERE c.cust_id IN (
+        SELECT 	cust_id
+        FROM 	review
+        WHERE	1=1 {_since("review_date", range_val)}
+        GROUP BY cust_id 
+        HAVING  COUNT(cust_id) = (	
+            SELECT MAX(review_count)
+            FROM (
+                SELECT 	COUNT(cust_id) AS review_count
+                FROM 	review
+                WHERE	1=1 {_since("review_date", range_val)}
+                GROUP BY cust_id
+            ) AS max_review_count
+        )
+    )
+    GROUP BY cust_id, customer_name, email
+    ORDER BY cust_id
+    """
+    return run_query(sql)
+
+
 # ============================================================
 #  รายการรายงานที่แสดงบนหน้า /report  (เรียงตามลำดับที่แสดง)
 #  ★ วิธีเพิ่มรายงานใหม่ (ไม่ต้องแก้ไฟล์อื่น):
@@ -983,5 +1034,7 @@ SUMMARY = [
     ("best-selling",  " สินค้าขายดี (Best Sellers) 📈", summary_best_selling),
     ("top-customers", " ลูกค้าที่ซื้อมากกว่าค่าเฉลี่ย (Above Average) 🏅",
      summary_customers_above_avg),
-    ("high-rated",    "⭐ สินค้าคะแนนรีวิวเฉลี่ย ≥ 4 (HAVING)", summary_high_rated)
+    ("most-interactive",    "💬 ลูกค้าที่มีส่วนร่วมรีวิวสูงสุด (Top Reviewers)", summary_most_interactive_customer),
+    ("high-rated",    "⭐ สินค้าคะแนนรีวิวเฉลี่ย ≥ 4", summary_high_rated),
+    ("lowest-rated",    "⭐ สินค้าคะแนนรีวิวเฉลี่ย < 2", summary_low_rated),
 ]
