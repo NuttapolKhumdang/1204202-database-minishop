@@ -113,7 +113,7 @@ def add(sql: str, s: str, end: bool | str = False) -> str:
 def customer() -> str:
     name = fake.name()
     email = fake.email()
-    gender = choice(['M', 'F'])
+    gender = choice(['Male', 'Female'])
     point = choices([0, 500, 1000, 5000], k=1, weights=[0.6, 0.2, 0.1, 0.1])[
         0]  # Normal, Silver , Gold, VIP
     birthdate = f"{randrange(2000, 2013 + 1)}-{randrange(1, 12 + 1)}-{randrange(1, 28 + 1)}"
