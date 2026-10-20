@@ -162,9 +162,10 @@
                   <p class="w-full text-left">ราคา</p>
                   <p class="w-full text-left">จำนวน</p>
               </section>
-
-              <menu class="flex flex-row items-center gap-4">
-              </menu>
+                  
+              <section class="grid grid-cols-2 place-items-center w-full gap-2">
+                <p class="w-full text-left">รวม</p>
+              </section>
             </div>`;
 
       for (let k of lines) {
@@ -177,9 +178,10 @@
                   <p class="w-full text-left">${k.qty}</p>
               </section>
 
-              <menu class="flex flex-row items-center gap-4">
-                  <button class="btn" id="btn-remove-order-lines" onclick="removeLine('${k.product_id}')">ลบ</button>
-              </menu>
+              <section class="grid grid-cols-2 place-items-center w-full gap-2">
+                <p class="w-full text-left">${(Number(k.qty) * Number(k.price)).toLocaleString('en-US')}</p>
+                <button class="btn py-0" id="btn-remove-order-lines" onclick="removeLine('${k.product_id}')">ลบ</button>
+              </section>
             </div>
             `;
       }
