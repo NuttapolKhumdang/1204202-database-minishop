@@ -284,8 +284,9 @@ SET		discount = IFNULL(sub_total * (
     sql = add(sql, "")
     sql = add(sql, "-- ## UPDATE PAYMENT amount ##")
     sql = add(sql, "UPDATE payment")
-    sql = add(sql, "SET amount = (SELECT sub_total - discount FROM shop_order WHERE shop_order.order_id = payment.order_id)", ",\n")
-    sql = add(sql, " paid_date = (SELECT order_date FROM shop_order WHERE shop_order.order_id = payment.order_id)", True)
+    sql = add(sql, "JOIN shop_order ON shop_order.order_id = payment.order_id")
+    sql = add(sql, "SET amount = shop_order.sub_total - shop_order.discount", ",\n")
+    sql = add(sql, " paid_date = shop_order.order_date", True)
 
     sql = add(sql, "")
     sql = add(sql, "-- ## UPDATE REVIEW review_date ##")
