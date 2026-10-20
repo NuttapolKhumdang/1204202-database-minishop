@@ -59,9 +59,10 @@
               <p class="w-full text-left">ส่วนลด</p>
             </section>
             
-            <menu class="flex flex-row items-center gap-4">
+            <section class="grid grid-cols-2 place-items-center w-full gap-2">
               <p class="w-full text-left">สุทธิ</p>
-            </menu>
+              <p class="w-full text-left">แต้มสะสม</p>
+            </section>
           </div>
           <div class="grid grid-cols-3 place-items-center py-1  font-bold">
             <p class="font-bold w-full text-left"></p>
@@ -70,9 +71,11 @@
               <span class="w-full text-left" id="sub_total">รวม</span>
               <span class="w-full text-left" id="discount">ส่วนลด</span>
             </section>
-            
-            <menu class="flex flex-row items-center gap-4">
+
+            <section class="grid grid-cols-2 place-items-center w-full gap-2">
               <span class="w-full text-left" id="total">ส่วนลด</span>
+              <span class="w-full text-left" id="point">point</span>
+            </section>            
             </menu>
           </div>
         </div>
@@ -122,6 +125,15 @@
       
       $(`span#total`).innerHTML = (order.sub_total - order.discount).toFixed(2);
       $(`option#status-${order.status}`).selected = true;
+      
+      
+      $(`option#status-${order.status}`).selected = true;
+      
+      const sub_total = order.sub_total;
+      const discount = order.discount;
+      const total = sub_total - discount;
+      const point = total * ( total >= 1000 ? 0.1 : 0.05);
+      $(`span#point`).innerHTML = ~~(point);
 
       addresses = (await (await fetch(`/api/customers/${order.cust_id}/address`)).json()).data;
 
@@ -132,7 +144,6 @@
         let template = `<option id="address-id-${a.address_id}" value="${a.address_id}">${address}</option>`
         $("#addresses").innerHTML += template;
       }
-
 
       if (order.status != "pending") {
         $('#order-editor-adder').classList.add("hidden");

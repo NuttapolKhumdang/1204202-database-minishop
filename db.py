@@ -202,6 +202,7 @@ def search_customers(filters):
                               WHEN 'M' THEN 'Male'
                               ELSE c.gender
                 END AS 'gender'
+            ,   c.point
             ,   t.tier
             ,   c.join_date
         FROM    customer c
@@ -302,15 +303,10 @@ def delete_address(address_id):
     rows = run_command(sql, (address_id,))
     return rows
 
-
-PRODUCT_STATUS = {
-    'เลิกขาย': 0,
-    'ใช้งานอยู่': 1,
-}
+# -- Product
 
 
 def search_products(filters):
-    """ค้นหาสินค้า (ชื่อ/หมวดหมู่/ช่วงราคา) — product_id ห้ามตั้ง alias ไทย (หน้าเว็บใช้สร้าง URL)"""
     sql = """
         SELECT  p.product_id
             ,   p.name
@@ -320,22 +316,41 @@ def search_products(filters):
         WHERE 1=1
     """
 
+    PRODUCT_STATUS = {
+        'เลิกขาย': 0,
+        'ใช้งานอยู่': 1,
+    }
+
     params = []
 
-    if filters.get("is_active") and filters.get("is_active") in PRODUCT_STATUS:
+    if filters.get("category"):
+        sql = """
+        SELECT  p.product_id
+            ,   p.name
+            ,   p.price
+            ,   p.stock
+        FROM	product p
+        WHERE	product_id IN (
+            SELECT 		DISTINCT p2.product_id 
+              FROM 		product p2
+         LEFT JOIN	    product_category pc on pc.product_id = p2.product_id
+             WHERE 		pc.category_id = (SELECT c.category_id FROM category c WHERE c.name LIKE %s)
+        )
+        """
+        params.append(f"%{filters['category']}%")
+
+    if filters.get("is_active"):
         sql += " AND p.is_active = %s"
-        params.append(PRODUCT_STATUS[filters['is_active']])
+
+        if filters.get("is_active") in PRODUCT_STATUS:
+            params.append(PRODUCT_STATUS[filters['is_active']])
+        
+        if (filters.get("is_active") in ['0', '1']):
+            params.append(filters['is_active'])
 
     if filters.get("name"):
         sql += " AND p.name LIKE %s"
         params.append("%" + filters["name"] + "%")
-
-    if filters.get("category"):            # กรองด้วยรหัสหรือชื่อหมวดหมู่ก็ได้
-        if str(filters["category"]).isdigit():
-            sql += " AND p.category = %s"
-        else:
-            sql += " AND pc.name = %s"
-        params.append(filters["category"])
 
     if filters.get("min_price"):
         sql += " AND p.price >= %s"
@@ -623,12 +638,13 @@ def create_order_line(order_id, data):
         cur.execute("""
             UPDATE 	shop_order
             JOIN 	vw_customer_tier ON vw_customer_tier.cust_id = shop_order.cust_id
-            SET		discount = IFNULL(sub_total * (CASE 
-                                                WHEN vw_customer_tier.tier = 'vip' 								THEN 0.15
-                                                WHEN vw_customer_tier.tier = 'gold' 	AND sub_total >= 500 	THEN 0.10
-                                                WHEN vw_customer_tier.tier = 'silver' 	AND sub_total >= 500 	THEN 0.05
-                                                WHEN vw_customer_tier.tier = 'normal' 							THEN 0
-                                            END), 0)
+            SET		discount = IFNULL(sub_total * (
+                    CASE 
+                        WHEN vw_customer_tier.tier = 'vip' 								THEN 0.15
+                        WHEN vw_customer_tier.tier = 'gold' 	AND sub_total >= 500 	THEN 0.10
+                        WHEN vw_customer_tier.tier = 'silver' 	AND sub_total >= 500 	THEN 0.05
+                        WHEN vw_customer_tier.tier = 'normal' 							THEN 0
+                    END), 0)
             WHERE 	order_id = %s;
         """, (order_id, ))
     return run_transaction(work)
@@ -666,12 +682,13 @@ def delete_order_line(order_id, pid):
         cur.execute("""
             UPDATE 	shop_order
             JOIN 	vw_customer_tier ON vw_customer_tier.cust_id = shop_order.cust_id
-            SET		discount = IFNULL(sub_total * (CASE 
-                                                WHEN vw_customer_tier.tier = 'vip' 								THEN 0.15
-                                                WHEN vw_customer_tier.tier = 'gold' 	AND sub_total >= 500 	THEN 0.10
-                                                WHEN vw_customer_tier.tier = 'silver' 	AND sub_total >= 500 	THEN 0.05
-                                                WHEN vw_customer_tier.tier = 'normal' 							THEN 0
-                                            END), 0)
+            SET		discount = IFNULL(sub_total * (
+                    CASE 
+                        WHEN vw_customer_tier.tier = 'vip' 								THEN 0.15
+                        WHEN vw_customer_tier.tier = 'gold' 	AND sub_total >= 500 	THEN 0.10
+                        WHEN vw_customer_tier.tier = 'silver' 	AND sub_total >= 500 	THEN 0.05
+                        WHEN vw_customer_tier.tier = 'normal' 							THEN 0
+                    END), 0)
             WHERE 	order_id = %s;
         """, (order_id, ))
     return run_transaction(work)
@@ -680,7 +697,35 @@ def delete_order_line(order_id, pid):
 # --  Payment
 
 def search_payment(filters):
-    return run_query("SELECT * FROM payment")
+    sql = """
+        SELECT  p.payment_id
+            ,   so.order_id
+            ,   c.name          AS customer_name
+            ,   p.amount
+            ,   p.method
+            ,   p.paid_date
+        FROM    payment p
+        JOIN    shop_order so   ON so.order_id = p.order_id
+        JOIN    customer c      ON c.cust_id = so.cust_id
+        WHERE 1=1
+    """
+
+    params = []
+
+    if filters.get('payment_id'):
+        sql += " AND payment_id = %s"
+        params.append(filters['order_id'])
+
+    if filters.get('order_id'):
+        sql += " AND so.order_id = %s"
+        params.append(filters['order_id'])
+
+    if filters.get('cust_id'):
+        sql += " AND so.cust_id = %s"
+        params.append(filters['cust_id'])
+
+    sql += " ORDER BY payment_id"
+    return run_query(sql, (*params, ))
 
 
 def get_payment(payment_id):
@@ -690,14 +735,33 @@ def get_payment(payment_id):
 
 
 def create_payment(data):
-    sql = """INSERT INTO payment (order_id, method, amount, paid_date) VALUES (%s, %s, %s, %s)"""
-
     order_id = data['order_id']
     method = data['method']
     amount = data['amount']
     paid_date = data['paid_date']
 
-    return run_command(sql, (order_id, method, amount, paid_date,))
+    def work(cur):
+        sql = """INSERT INTO payment (order_id, method, amount, paid_date) VALUES (%s, %s, %s, %s)"""
+        cur.execute(sql, (order_id, method, amount, paid_date,))
+
+        cur.execute("""
+            SELECT  so.cust_id
+                ,   so.sub_total - so.discount  AS total
+                ,   SUM(amount)                 AS paided
+            FROM    shop_order so
+        LEFT JOIN   payment p ON p.order_id = so.order_id
+            WHERE   so.order_id=%s
+        GROUP BY    so.cust_id, total
+            """, (order_id, ))
+        order = cur.fetchone()
+
+        if float(order['total']) == float(order['paided']):
+            total = float(order['total'])
+            point = round(total * (0.1 if total >= 1000 else 0.05))
+            cur.execute("""UPDATE customer SET point = point + %s WHERE cust_id = %s""",
+                        (point, order['cust_id'], ))
+
+    return run_transaction(work)
 
 
 def update_payment(payment_id, data):
@@ -714,8 +778,9 @@ def delete_payment(payment_id):
 # --  Review
 
 def search_review(filters):
-    return run_query("""
+    sql = """
         SELECT  r.review_id
+            ,   r.review_date
             ,   c.name                  AS customer_name
             ,   p.name                  AS product_name
             ,   r.rating
@@ -723,7 +788,20 @@ def search_review(filters):
         FROM    review r
         JOIN    customer c ON c.cust_id     = r.cust_id
         JOIN    product  p ON p.product_id  = r.product_id
-    """)
+        WHERE 1=1
+    """
+
+    params = []
+
+    if filters.get('review_id'):
+        sql += " AND r.review_id = %s"
+        params.append(filters['review_id'])
+
+    if filters.get('product_id'):
+        sql += " AND p.product_id = %s"
+        params.append(filters['product_id'])
+
+    return run_query(sql, (*params, ))
 
 
 def get_review(review_id):
@@ -781,25 +859,43 @@ def summary_summary(filters):
     range_val = filters.get("range") if isinstance(filters, dict) else filters
 
     sql = f"""SELECT
-          (SELECT COUNT(*) FROM customer
-            WHERE 1=1 {_since("join_date", range_val)}
-          )     AS 'ลูกค้า',
-          (SELECT COUNT(*) FROM product
-            WHERE 1=1 {_since("added_date", range_val)}
-          )        AS 'สินค้า',
-          (SELECT COUNT(*) FROM shop_order
-            WHERE 1=1 {_since("order_date", range_val)}
-          )     AS 'ออเดอร์',
-          (SELECT COUNT(*) FROM review
-            WHERE 1=1 {_since("review_date", range_val)}
-          )         AS 'รีวิว',   
-          ( SELECT SUM(sub_total - discount) FROM shop_order
-            WHERE 1=1 {_since("order_date", range_val)}
-           ) AS 'ยอดขายรวม (บาท)',
-          (SELECT ROUND(AVG(rating), 2) FROM review
-            WHERE 1=1 {_since("review_date", range_val)}
-          ) AS 'คะแนนรีวิวเฉลี่ย'
-          """
+        (
+            SELECT COUNT(*) FROM customer
+            WHERE 1=1
+                {_since("join_date", range_val)}
+        ) AS 'ลูกค้า',
+
+        (
+            SELECT COUNT(*) FROM product
+            WHERE 1=1 
+                {_since("added_date", range_val)}
+        ) AS 'สินค้า',
+
+        (
+            SELECT  COUNT(*) FROM shop_order
+            WHERE   1=1
+                {_since("order_date", range_val)}
+        ) AS 'ออเดอร์',
+
+        (
+            SELECT  COUNT(*) FROM review
+            WHERE   1=1
+                {_since("review_date", range_val)}
+        ) AS 'รีวิว',   
+
+        ( 
+            SELECT  SUM(sub_total - discount) 
+            FROM    shop_order
+            WHERE   status IN ('shipped', 'complete')
+                {_since("order_date", range_val)}
+        ) AS 'ยอดขายรวม (บาท)',
+
+        (
+            SELECT  ROUND(AVG(rating), 2) FROM review
+            WHERE   1=1
+                {_since("review_date", range_val)}
+        ) AS 'คะแนนรีวิวเฉลี่ย'
+        """
     return run_query(sql)[0]
 
 

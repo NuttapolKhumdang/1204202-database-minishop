@@ -169,7 +169,7 @@ const ENTITIES = {
     ]
   },
   "payments": {
-    "label": "จ่ายเงิน",
+    "label": "ชำระเงิน",
     "api": "/api/payments",
     "idKey": "payment_id",
     "search": [
@@ -177,12 +177,27 @@ const ENTITIES = {
         "key": "payment_id",
         "label": "รหัสการชำระเงิน",
         "type": "number"
-      }
+      },
+      {
+        "key": "order_id",
+        "label": "หมายเลขคำสั่งซื้อ",
+        "type": "number"
+      },
+      {
+        "key": "cust_id",
+        "label": "ลูกค้า",
+        "type": "select",
+        "optionsFrom": {
+          "api": "/api/customers",
+          "value": "cust_id",
+          "label": "name"
+        }
+      },
     ],
     "form": [
       {
         "key": "order_id",
-        "label": "คำสั่งซื้อ",
+        "label": "หมายเลขคำสั่งซื้อ",
         "type": "number"
       },
       {
@@ -213,9 +228,19 @@ const ENTITIES = {
     "search": [
       {
         "key": "review_id",
-        "label": "รีวิว",
+        "label": "รหัสการรีวิว",
         "type": "number"
-      }
+      },
+      {
+        "key": "product_id",
+        "label": "สินค้า",
+        "type": "select",
+        "optionsFrom": {
+          "api": "/api/products",
+          "value": "product_id",
+          "label": "name"
+        }
+      },
     ],
     "form": [
       {
