@@ -1,8 +1,11 @@
+"""
+This script generates randomized dummy data to populate the Minishop database
+for testing and development purposes.
+"""
+
 from faker import Faker
 import faker_commerce
-from random import random, randrange, choice, choices, sample
-from datetime import date
-from typing import List, Dict
+from random import randrange, choice, choices, sample
 
 fake = Faker(['th_TH'])
 fake.add_provider(faker_commerce.Provider)
@@ -15,7 +18,6 @@ MAX_PRODUCT_ID = 20
 
 MIN_ORDER_ID = 1
 MAX_ORDER_ID = 10
-
 
 CATEGORIES = [
     "Books",
@@ -73,34 +75,6 @@ CATEGORIES = [
     "Used",
     "For repair"
 ]
-CUSTOMER_ORDERS = [(14, '2026-10-03', 'complete', 14, 0, 0, 0),
-                   (37, '2026-10-01', 'pending', 37, 0, 0, 0),	(15, '2026-10-04',
-                                                                'shipped', 15, 0, 0, 0),	(10, '2026-10-03', 'cancel', 10, 0, 0, 0),
-                   (29, '2026-10-05', 'shipped', 29, 0, 0, 0),	(31, '2026-10-03',
-                                                                'shipped', 31, 0, 0, 0),	(20, '2026-10-01', 'cancel', 20, 0, 0, 0),
-                   (37, '2026-10-03', 'cancel', 37, 0, 0, 0),	(16, '2026-10-05',
-                                                               'cancel', 16, 0, 0, 0),	(33, '2026-10-03', 'pending', 33, 0, 0, 0),
-                   (12, '2026-10-05', 'shipped', 12, 0, 0, 0),	(35, '2026-10-01',
-                                                                'pending', 35, 0, 0, 0),	(25, '2026-10-03', 'cancel', 25, 0, 0, 0),
-                   (13, '2026-10-02', 'shipped', 13, 0, 0, 0),	(12, '2026-10-05',
-                                                                'complete', 12, 0, 0, 0),	(29, '2026-10-02', 'complete', 29, 0, 0, 0),
-                   (30, '2026-10-02', 'complete', 30, 0, 0, 0),	(8, '2026-10-04',
-                                                                 'cancel', 8, 0, 0, 0),	(6, '2026-10-05', 'cancel', 6, 0, 0, 0),
-                   (4, '2026-10-01', 'cancel', 4, 0, 0, 0),	(12, '2026-10-05',
-                                                             'shipped', 12, 0, 0, 0),	(33, '2026-10-04', 'complete', 33, 0, 0, 0),
-                   (18, '2026-10-04', 'shipped', 18, 0, 0, 0),	(12, '2026-10-02',
-                                                                'shipped', 12, 0, 0, 0),	(6, '2026-10-02', 'pending', 6, 0, 0, 0),
-                   (31, '2026-10-01', 'shipped', 31, 0, 0, 0),	(28, '2026-10-02',
-                                                                'cancel', 28, 0, 0, 0),	(16, '2026-10-04', 'pending', 16, 0, 0, 0),
-                   (11, '2026-10-01', 'complete', 11, 0, 0, 0),	(18, '2026-10-03',
-                                                                 'cancel', 18, 0, 0, 0),	(35, '2026-10-01', 'pending', 35, 0, 0, 0),
-                   (31, '2026-10-05', 'cancel', 31, 0, 0, 0),	(30, '2026-10-01',
-                                                               'cancel', 30, 0, 0, 0),	(15, '2026-10-01', 'pending', 15, 0, 0, 0),
-                   (24, '2026-10-05', 'complete', 24, 0, 0, 0),	(12, '2026-10-01',
-                                                                 'complete', 12, 0, 0, 0),	(27, '2026-10-04', 'cancel', 27, 0, 0, 0),
-                   (21, '2026-10-02', 'shipped', 21, 0, 0, 0),	(25, '2026-10-04',
-                                                                'complete', 25, 0, 0, 0),	(22, '2026-10-04', 'shipped', 22, 0, 0, 0)
-                   ]
 
 
 def add(sql: str, s: str, end: bool | str = False) -> str:
@@ -187,8 +161,6 @@ def review(cust_id: int, order_id: int, ) -> str:
 
 
 def main():
-    # CUSTOMER
-
     sql = ""
     sql = add(sql, "")
     sql = add(sql, "-- ## CUSTOMER ##")
