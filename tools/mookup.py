@@ -114,7 +114,8 @@ def customer() -> str:
     name = fake.name()
     email = fake.email()
     gender = choice(['M', 'F'])
-    point = choices([0, 500, 1000, 5000], k=1, weights=[0.6, 0.2, 0.1, 0.1])[0]  # Normal, Silver , Gold, VIP
+    point = choices([0, 500, 1000, 5000], k=1, weights=[0.6, 0.2, 0.1, 0.1])[
+        0]  # Normal, Silver , Gold, VIP
     birthdate = f"{randrange(2000, 2013 + 1)}-{randrange(1, 12 + 1)}-{randrange(1, 28 + 1)}"
     join_date = f"{randrange(2025, 2026 + 1)}-{randrange(1, 12 + 1)}-{randrange(1, 28 + 1)}"
 
@@ -269,10 +270,28 @@ def main():
     sql = add(sql, "WHERE ol.order_id = shop_order.order_id), 0)", True)
 
     sql = add(sql, "")
+    sql = add(sql, "-- ## UPDATE SHOP ORDER discount ##")
+    sql = add(sql, """UPDATE shop_order
+JOIN    vw_customer_tier ON vw_customer_tier.cust_id = shop_order.cust_id
+SET		discount = IFNULL(sub_total * (
+        CASE 
+            WHEN vw_customer_tier.tier = 'vip' THEN 0.15
+            WHEN vw_customer_tier.tier = 'gold' AND sub_total >= 500 THEN 0.10
+            WHEN vw_customer_tier.tier = 'silver' AND sub_total >= 500 THEN 0.05
+            WHEN vw_customer_tier.tier = 'normal' THEN 0
+        END), 0)""", True)
+
+    sql = add(sql, "")
     sql = add(sql, "-- ## UPDATE PAYMENT amount ##")
     sql = add(sql, "UPDATE payment")
     sql = add(sql, "SET amount = (SELECT sub_total - discount FROM shop_order WHERE shop_order.order_id = payment.order_id)", ",\n")
     sql = add(sql, " paid_date = (SELECT order_date FROM shop_order WHERE shop_order.order_id = payment.order_id)", True)
+
+    sql = add(sql, "")
+    sql = add(sql, "-- ## UPDATE REVIEW review_date ##")
+    sql = add(sql, "UPDATE review")
+    sql = add(sql, "JOIN shop_order ON shop_order.order_id = review.order_id")
+    sql = add(sql, "SET review.review_date = shop_order.order_date", True)
 
     print(sql)
 
