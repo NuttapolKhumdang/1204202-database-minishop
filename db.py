@@ -1027,7 +1027,7 @@ def summary_most_interactive_customer(filters):
                 GROUP BY cust_id
             ) AS max_review_count
         )
-    )
+    ) {_since("review_date", range_val)}
     GROUP BY cust_id, customer_name, email
     ORDER BY cust_id
     """
