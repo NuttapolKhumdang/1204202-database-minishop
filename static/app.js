@@ -222,7 +222,7 @@ const ENTITIES = {
     ]
   },
   "reviews": {
-    "label": "จ่ายเงิน",
+    "label": "ความคิดเห็น",
     "api": "/api/reviews",
     "idKey": "review_id",
     "search": [
@@ -230,6 +230,16 @@ const ENTITIES = {
         "key": "review_id",
         "label": "รหัสการรีวิว",
         "type": "number"
+      },
+      {
+        "key": "cust_id",
+        "label": "ลูกค้า",
+        "type": "select",
+        "optionsFrom": {
+          "api": "/api/customers",
+          "value": "cust_id",
+          "label": "name"
+        }
       },
       {
         "key": "product_id",
