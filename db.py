@@ -797,6 +797,10 @@ def search_review(filters):
         sql += " AND r.review_id = %s"
         params.append(filters['review_id'])
 
+    if filters.get('cust_id'):
+        sql += " AND r.cust_id = %s"
+        params.append(filters['cust_id'])
+
     if filters.get('product_id'):
         sql += " AND p.product_id = %s"
         params.append(filters['product_id'])
@@ -886,9 +890,16 @@ def summary_summary(filters):
         ( 
             SELECT  SUM(sub_total - discount) 
             FROM    shop_order
-            WHERE   status IN ('shipped', 'complete')
+            WHERE   status IN ('pending', 'shipped', 'complete')
                 {_since("order_date", range_val)}
         ) AS 'ยอดขายรวม (บาท)',
+
+        ( 
+            SELECT  SUM(amount) 
+            FROM    payment
+            WHERE   1=1
+                {_since("paid_date", range_val)}
+        ) AS 'รายรับ (บาท)',
 
         (
             SELECT  ROUND(AVG(rating), 2) FROM review
@@ -999,6 +1010,7 @@ def summary_most_interactive_customer(filters):
         ,   c.name              AS customer_name
         ,   c.email
         ,   COUNT(r.cust_id)    AS review_count
+        ,   ROUND(AVG(r.rating), 2) AS average_review_rating
     FROM    customer c
     JOIN    review r    ON r.cust_id = c.cust_id
     WHERE c.cust_id IN (
@@ -1034,7 +1046,8 @@ SUMMARY = [
     ("best-selling",  " สินค้าขายดี (Best Sellers) 📈", summary_best_selling),
     ("top-customers", " ลูกค้าที่ซื้อมากกว่าค่าเฉลี่ย (Above Average) 🏅",
      summary_customers_above_avg),
-    ("most-interactive",    "💬 ลูกค้าที่มีส่วนร่วมรีวิวสูงสุด (Top Reviewers)", summary_most_interactive_customer),
+    ("most-interactive",    "💬 ลูกค้าที่มีส่วนร่วมรีวิวสูงสุด (Top Reviewers)",
+     summary_most_interactive_customer),
     ("high-rated",    "⭐ สินค้าคะแนนรีวิวเฉลี่ย ≥ 4", summary_high_rated),
     ("lowest-rated",    "⭐ สินค้าคะแนนรีวิวเฉลี่ย < 2", summary_low_rated),
 ]
