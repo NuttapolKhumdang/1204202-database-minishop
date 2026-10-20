@@ -105,8 +105,12 @@ CREATE TABLE order_line (         -- M:N: shop_order × product
     CONSTRAINT chk_order_line_qty       CHECK (qty > 0),
     CONSTRAINT chk_order_line_price     CHECK (unit_price >= 0),
     CONSTRAINT pk_order_line            PRIMARY KEY (order_id, product_id),
-    CONSTRAINT fk_order_line_order      FOREIGN KEY (order_id) REFERENCES shop_order (order_id),
-    CONSTRAINT fk_order_line_product    FOREIGN KEY (product_id) REFERENCES product (product_id)
+    CONSTRAINT fk_order_line_order      
+        FOREIGN KEY (order_id) REFERENCES shop_order (order_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_order_line_product    
+    FOREIGN KEY (product_id) REFERENCES product (product_id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE review (             -- M:N: customer × product
@@ -123,7 +127,7 @@ CREATE TABLE review (             -- M:N: customer × product
     CONSTRAINT fk_review_cust       FOREIGN KEY (cust_id) REFERENCES customer (cust_id),
     CONSTRAINT fk_review_order      FOREIGN KEY (order_id) REFERENCES shop_order (order_id),
     CONSTRAINT fk_review_product    FOREIGN KEY (product_id) REFERENCES product (product_id)
-);  
+);
 
 CREATE TABLE payment (            -- 1:M จาก shop_order
     -- TODO: order_id (FK), method, amount, paid_date
