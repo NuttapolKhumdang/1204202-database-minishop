@@ -163,10 +163,7 @@ def search_customers(filters):
         SELECT  c.cust_id
             ,   c.name
             ,   c.email
-            ,   CASE c.gender WHEN 'F' THEN 'Female'
-                              WHEN 'M' THEN 'Male'
-                              ELSE c.gender
-                END AS 'gender'
+            ,   c.gender
             ,   c.point
             ,   t.tier
             ,   c.join_date
@@ -747,7 +744,8 @@ def create_payment(data):
 
         if float(order['total']) == float(order['paided']):
             total = float(order['total'])
-            point = round(total * (ORDER_POINT_MULTIPLYER[">=1000"] if total >= 1000 else ORDER_POINT_MULTIPLYER["<1000"]))
+            point = round(
+                total * (ORDER_POINT_MULTIPLYER[">=1000"] if total >= 1000 else ORDER_POINT_MULTIPLYER["<1000"]))
             cur.execute("""UPDATE customer SET point = point + %s WHERE cust_id = %s""",
                         (point, order['cust_id'], ))
 
