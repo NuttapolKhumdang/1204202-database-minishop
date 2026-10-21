@@ -312,36 +312,54 @@ def search_products(filters):
             ,   p.name
             ,   p.price
             ,   p.stock
-        FROM product p
+            ,   vpc.categories
+        FROM    product p
+        JOIN    vw_product_categories vpc ON vpc.product_id = p.product_id
         WHERE 1=1
     """
 
     PRODUCT_STATUS = {
         'เลิกขาย': 0,
         'ใช้งานอยู่': 1,
+        'ทั้งหมด': -1,
     }
 
     params = []
 
     if filters.get("category"):
-        sql = """
+        query = [q.strip() for q in filters.get("category").split(',')]
+        mapped_query = [f"%{q}%" for q in query]
+        mapped_parameter = ' '.join(
+            ['or c.name like %s' for _ in mapped_query])
+
+        for q in mapped_query:
+            params.append(q)
+
+        sql = f"""
         SELECT  p.product_id
             ,   p.name
             ,   p.price
             ,   p.stock
-        FROM	product p
-        WHERE	product_id IN (
-            SELECT 		DISTINCT p2.product_id 
-              FROM 		product p2
-         LEFT JOIN	    product_category pc on pc.product_id = p2.product_id
-             WHERE 		pc.category_id = (SELECT c.category_id FROM category c WHERE c.name LIKE %s)
+            ,   vpc.categories
+        FROM    product p
+        JOIN    vw_product_categories vpc ON vpc.product_id = p.product_id
+        WHERE	p.product_id IN (
+            SELECT 	pc.product_id
+            FROM	product_category pc
+            WHERE 	pc.category_id IN (
+                SELECT 	c.category_id 
+                FROM 	category c
+                WHERE	1 <> 1
+                    {mapped_parameter}
+            )
         )
         """
-        params.append(f"%{filters['category']}%")
 
-    if filters.get("is_active"):
+    if not filters.get("is_active"):
+        sql += " AND p.is_active = 1"
+
+    elif filters.get("is_active") and str(filters.get("is_active")).lower() != 'all':
         sql += " AND p.is_active = %s"
-
         if filters.get("is_active") in PRODUCT_STATUS:
             params.append(PRODUCT_STATUS[filters['is_active']])
 

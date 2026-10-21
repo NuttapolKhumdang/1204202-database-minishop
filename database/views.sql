@@ -7,3 +7,11 @@ SELECT  cust_id
         END AS tier
 FROM    customer c
 ;
+
+CREATE OR REPLACE VIEW vw_product_categories AS
+SELECT  pc.product_id 
+    ,   GROUP_CONCAT(c.name SEPARATOR ', ') as categories
+FROM    product_category pc 
+JOIN    category c on c.category_id = pc.category_id
+GROUP BY product_id
+;

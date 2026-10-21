@@ -88,6 +88,10 @@
               <span>ชื่อ</span>
               <input type="text" id="product-search-name" value="" />
             </label>
+            <label class="field col-span-3">
+              <span>หวมดหมู่สินค้า</span>
+              <input type="text" id="product-search-category" value="" />
+            </label>
             <label class="field">
               <span>จำนวน</span>
               <input type="number" id="product-search-qty" min="1"  value="1" />
@@ -214,8 +218,16 @@
       renderOrders();
     };
 
-    async function searchProduct(keyword) {
-      searchedProduct = (await (await fetch(`/api/products?name=` + keyword)).json()).data;
+
+    let _searchKeyword;
+    let _searchCategory;
+
+    async function searchProduct() {
+      searchedProduct = (await (await fetch(
+        `/api/products?is_active=1` 
+        + (_searchKeyword ? `&name=${_searchKeyword}`: '' )
+        + (_searchCategory ? `&category=${_searchCategory}`: '')
+      )).json()).data;
       renderSearchProduct();
     }
 
@@ -254,7 +266,12 @@
     };
 
     $("#product-search-name").addEventListener("input", (ev) => {
-      searchProduct(ev.target.value);
+      _searchKeyword = ev.target.value;
+      searchProduct();
+    });
+    $("#product-search-category").addEventListener("input", (ev) => {
+      _searchCategory = ev.target.value;
+      searchProduct();
     });
 
     async function save() {
