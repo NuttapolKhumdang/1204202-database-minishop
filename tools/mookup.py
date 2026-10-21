@@ -153,11 +153,11 @@ def payment(order_id: int,) -> str:
     return f"( {order_id}, '{method}', 0, '{paid_date}')"
 
 
-def review(cust_id: int, order_id: int, ) -> str:
+def review(order_id: int) -> str:
     product_id = randrange(MIN_PRODUCT_ID, MAX_PRODUCT_ID)
     rating = randrange(1, 5 + 1)
     comment = fake.paragraph()
-    return f"({cust_id}, {order_id}, {product_id}, {rating}, '{comment}')"
+    return f"({order_id}, {product_id}, {rating}, '{comment}')"
 
 
 def main():
@@ -215,10 +215,9 @@ def main():
     sql = add(sql, "")
     sql = add(sql, "-- ## REVIEW ##")
     sql = add(
-        sql, "INSERT INTO review (cust_id, order_id, product_id, rating, comment) VALUES")
+        sql, "INSERT INTO review (order_id, product_id, rating, comment) VALUES")
     for id in range(MIN_ORDER_ID, MAX_ORDER_ID):
-        sql = add(sql, review(randrange(MIN_CUSTOMER_ID, MAX_CUSTOMER_ID), id), ",\n" if id !=
-                  MAX_ORDER_ID - 1 else True)
+        sql = add(sql, review(id), ",\n" if id != MAX_ORDER_ID - 1 else True)
 
     sql = add(sql, "")
     sql = add(sql, "-- ## PAYMENT ##")
