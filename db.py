@@ -1002,21 +1002,24 @@ def summary_most_interactive_customer(filters):
     SELECT  c.cust_id
         ,   c.name              AS customer_name
         ,   c.email
-        ,   COUNT(r.cust_id)    AS review_count
+        ,   COUNT(c.cust_id)    AS review_count
         ,   ROUND(AVG(r.rating), 2) AS average_review_rating
     FROM    customer c
-    JOIN    review r    ON r.cust_id = c.cust_id
+    JOIN    shop_order so ON so.cust_id = c.cust_id
+    JOIN    review r    ON r.order_id = so.order_id
     WHERE c.cust_id IN (
-        SELECT 	cust_id
-        FROM 	review
-        WHERE	1=1 {_since("review_date", range_val)}
+        SELECT 	so2.cust_id
+        FROM 	review r2
+        JOIN    shop_order so2 ON so2.order_id = r2.order_id
+        WHERE	1=1 {_since("r2.review_date", range_val)}
         GROUP BY cust_id 
         HAVING  COUNT(cust_id) = (	
             SELECT MAX(review_count)
             FROM (
-                SELECT 	COUNT(cust_id) AS review_count
-                FROM 	review
-                WHERE	1=1 {_since("review_date", range_val)}
+                SELECT 	COUNT(so3.cust_id) AS review_count
+                FROM 	review r3
+                JOIN    shop_order so3 ON so3.order_id = r3.order_id
+                WHERE	1=1 {_since("r3.review_date", range_val)}
                 GROUP BY cust_id
             ) AS max_review_count
         )
