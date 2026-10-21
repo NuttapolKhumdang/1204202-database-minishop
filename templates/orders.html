@@ -234,23 +234,25 @@
 
     const renderSearchProduct = () => {
       $("#searched-product").innerHTML = `
-          <div class="grid grid-cols-3 place-items-center py-1  font-bold">
+          <div class="grid grid-cols-5 place-items-center py-1  font-bold">
               <p class="font-bold w-full text-left">ชื่อสินค้า</p>
 
               <section class="grid grid-cols-2 place-items-center w-full gap-2">
                   <p class="w-full text-left">ราคา</p>
                   <p class="w-full text-left">คลัง</p>
               </section>
-
-              <menu class="flex flex-row items-center gap-4">
-              </menu>
+              <section class="grid grid-cols-1 col-span-2 place-items-center w-full gap-2">
+                  <p class="w-full text-left">หมวดหมู่</p>
+              </section>
+              <section class="grid grid-cols-1 place-items-center w-full gap-2">
+              </section>
             </div>`;
 
       for (let p of searchedProduct) {
         if (lines.map((l) => l.product_id).includes(p.product_id)) continue;
 
         $("#searched-product").innerHTML += `
-              <div class="grid grid-cols-3 place-items-center py-1 border-b border-neutral-200">
+              <div class="grid grid-cols-5 place-items-center py-1 border-b border-neutral-200">
                   <p class="font-bold w-full text-left">${p.name}</p>
 
                   <section class="grid grid-cols-2 place-items-center w-full gap-2">
@@ -258,9 +260,13 @@
                       <p class="w-full text-left">${p.stock}</p>
                   </section>
 
-                  <menu class="flex flex-row items-center gap-4">
+                  <section class="grid grid-cols-1 col-span-2 place-items-center w-full gap-2">
+                      <p class="w-full text-left">${p.categories}</p>
+                  </section>
+
+                  <section class="grid grid-cols-1 place-items-center w-full gap-2">
                       <button class="btn" onclick="addLine('${p.product_id}')">เพิ่ม</button>
-                  </menu>
+                  </section>
               </div>
             `;
       }
