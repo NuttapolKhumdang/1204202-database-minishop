@@ -137,7 +137,17 @@ const ENTITIES = {
           "complete",
           "cancel"
         ]
-      }
+      },
+      {
+        "key": "start_date",
+        "label": "วันที่สั่งซื้อ",
+        "type": "date"
+      },
+      {
+        "key": "end_date",
+        "label": "จนถึง",
+        "type": "date"
+      },
     ],
     "form": [
       {
