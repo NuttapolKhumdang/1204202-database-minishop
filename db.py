@@ -720,6 +720,11 @@ def get_payment(payment_id):
 
 
 def create_payment(data):
+    ORDER_POINT_MULTIPLYER = {
+        '<1000': 0.05,
+        '>=1000': 0.10
+    }
+
     order_id = data['order_id']
     method = data['method']
     amount = data['amount']
@@ -742,7 +747,7 @@ def create_payment(data):
 
         if float(order['total']) == float(order['paided']):
             total = float(order['total'])
-            point = round(total * (0.1 if total >= 1000 else 0.05))
+            point = round(total * (ORDER_POINT_MULTIPLYER[">=1000"] if total >= 1000 else ORDER_POINT_MULTIPLYER["<1000"]))
             cur.execute("""UPDATE customer SET point = point + %s WHERE cust_id = %s""",
                         (point, order['cust_id'], ))
 
@@ -771,7 +776,8 @@ def search_review(filters):
             ,   r.rating
             ,   r.comment
         FROM    review r
-        JOIN    customer c ON c.cust_id     = r.cust_id
+        JOIN    shop_order so ON so.order_id = r.order_id
+        JOIN    customer c ON c.cust_id     = so.cust_id
         JOIN    product  p ON p.product_id  = r.product_id
         WHERE 1=1
     """
@@ -783,12 +789,16 @@ def search_review(filters):
         params.append(filters['review_id'])
 
     if filters.get('cust_id'):
-        sql += " AND r.cust_id = %s"
+        sql += " AND c.cust_id = %s"
         params.append(filters['cust_id'])
 
     if filters.get('product_id'):
         sql += " AND p.product_id = %s"
         params.append(filters['product_id'])
+
+    if filters.get('rating'):
+        sql += " AND r.rating = %s"
+        params.append(filters['rating'])
 
     return run_query(sql, (*params, ))
 
