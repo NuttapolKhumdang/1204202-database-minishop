@@ -203,6 +203,11 @@ const ENTITIES = {
           "label": "name"
         }
       },
+      {
+        "key": "paid_date",
+        "label": "วันที่ทำรายการ",
+        "type": "date"
+      },
     ],
     "form": [
       {

@@ -740,6 +740,10 @@ def search_payment(filters):
         sql += " AND so.cust_id = %s"
         params.append(filters['cust_id'])
 
+    if filters.get('paid_date'):
+        sql += " AND paid_date = %s"
+        params.append(filters['paid_date'])
+
     sql += " ORDER BY payment_id"
     return run_query(sql, (*params, ))
 
