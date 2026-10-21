@@ -123,8 +123,13 @@ const ENTITIES = {
     "search": [
       {
         "key": "cust_id",
-        "label": "รหัสลูกค้า",
-        "type": "number"
+        "label": "ลูกค้า",
+        "type": "select",
+        "optionsFrom": {
+          "api": "/api/customers",
+          "value": "cust_id",
+          "label": "name"
+        }
       },
       {
         "key": "status",
