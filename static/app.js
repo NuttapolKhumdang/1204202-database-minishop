@@ -271,6 +271,12 @@ const ENTITIES = {
           "label": "name"
         }
       },
+      {
+        "key": "rating",
+        "label": "ความพอใจ",
+        "type": "select",
+        "options": ["", "1", "2", "3", "4", "5"]
+      },
     ],
     "form": [
       {
