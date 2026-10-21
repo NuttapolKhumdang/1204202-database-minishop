@@ -477,7 +477,6 @@ def get_category(filters):
 
 # ---------- ออเดอร์ (shop_order) ----------
 def search_orders(filters):
-    """ค้นหาออเดอร์ (รหัสลูกค้า/สถานะ/ช่วงวันที่) — order_id ห้ามตั้ง alias ไทย (หน้าเว็บใช้สร้าง URL)"""
     sql = """
         SELECT  o.order_id
             ,   c.cust_id                   AS 'รหัสลูกค้า'
@@ -489,7 +488,6 @@ def search_orders(filters):
         FROM    shop_order o 
         JOIN    customer c ON c.cust_id = o.cust_id
     LEFT JOIN   payment  p ON p.order_id = o.order_id
-
         WHERE 1=1"""
 
     params = []
