@@ -134,41 +134,6 @@ def _build_set(data, skip_blank=(), blank_to_null=()):
 
 
 # ---------- ลูกค้า (customer) ----------
-# 1 ลูกค้ามีได้หลายที่อยู่ (ตาราง address) — หน้าเว็บแสดง/แก้ "ที่อยู่แรก" (address_id ต่ำสุด) ของลูกค้า
-_FIRST_ADDRESS = "a.address_id = (SELECT MIN(a2.address_id) FROM address a2 WHERE a2.cust_id = c.cust_id)"
-_ADDRESS_TEXT = "CONCAT_WS(' ', a.line_1, a.line_2, a.province, a.postal_code)"
-_ADDRESS_RE = re.compile(
-    r"^(?P<line_1>.+?)\s+(?P<province>\S+)\s+(?P<postal_code>\d{5})$")
-
-
-def _address_from(data, old=None):
-    """อ่านที่อยู่จาก data (แยกช่อง หรือช่อง 'address' ช่องเดียว) คืน dict ที่จะบันทึก / None = ไม่ต้องแก้"""
-    address_type = _text(data.get("address_type"))
-    line_1 = _text(data.get("line_1"))
-    province = _text(data.get("province"))
-    postal_code = _text(data.get("postal_code"))
-
-    if line_1 or province or postal_code:                     # แบบที่ 1: แยกช่อง
-        if not (line_1 and province and postal_code):
-            raise ValueError("กรุณากรอกที่อยู่ จังหวัด และรหัสไปรษณีย์ให้ครบ")
-        new = {"line_1": line_1, "line_2": _text(data.get("line_2")), "province": province,
-               "postal_code": postal_code, "address_type": address_type}
-        if not old or any(new[k] != old[k] for k in ("line_1", "line_2", "province", "postal_code")):
-            return new
-        # แยกช่องไม่ต่างจากเดิม → ไปดูต่อว่าช่อง address (ข้อความรวม) ถูกแก้หรือเปล่า
-
-    # แบบที่ 2: ช่องเดียว (ยุบช่องว่างซ้ำ)
-    text = " ".join(str(data.get("address") or "").split())
-    if not text or (old and text == " ".join(old["text"].split())):
-        return None
-    m = _ADDRESS_RE.match(text)
-    if not m:
-        raise ValueError('รูปแบบที่อยู่ไม่ถูกต้อง ต้องลงท้ายด้วย "จังหวัด รหัสไปรษณีย์ 5 หลัก" '
-                         'เช่น 99 ถ.สุขุมวิท กรุงเทพฯ 10110')
-    return {"line_1": m["line_1"], "line_2": None, "province": m["province"],
-            "postal_code": m["postal_code"], "address_type": address_type}
-
-
 def search_customers(filters):
     if "name" in filters:
         filters["name"] = f"%{filters["name"]}%"
@@ -256,8 +221,8 @@ def get_customer_address(cust_id):
     sql = f"""
         SELECT a.address_id,
                a.address_type AS ประเภท,
-               a.line_1       AS ที่อยู่1,
-               a.line_2       AS ที่อยู่2,
+               a.line_1       AS 'บรรทัด 1',
+               a.line_2       AS 'บรรทัด 2',
                a.province     AS จังหวัด,
                a.postal_code  AS รหัสไปรษณีย์
         FROM address a
