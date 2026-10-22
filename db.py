@@ -266,7 +266,7 @@ def search_products(filters):
             ,   p.stock
             ,   vpc.categories
         FROM    product p
-        JOIN    vw_product_categories vpc ON vpc.product_id = p.product_id
+        LEFT JOIN vw_product_categories vpc ON vpc.product_id = p.product_id
         WHERE 1=1
     """
 
@@ -294,7 +294,7 @@ def search_products(filters):
             ,   p.stock
             ,   vpc.categories
         FROM    product p
-        JOIN    vw_product_categories vpc ON vpc.product_id = p.product_id
+        LEFT JOIN vw_product_categories vpc ON vpc.product_id = p.product_id
         WHERE	p.product_id IN (
             SELECT 	pc.product_id
             FROM	product_category pc
