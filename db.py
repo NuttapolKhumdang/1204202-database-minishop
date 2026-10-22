@@ -135,30 +135,7 @@ def _build_set(data, skip_blank=(), blank_to_null=()):
 
 # ---------- ลูกค้า (customer) ----------
 def search_customers(filters):
-    if "name" in filters:
-        filters["name"] = f"%{filters["name"]}%"
-
-    if "email" in filters:
-        filters["email"] = f"%{filters["email"]}%"
-
-    filter_options = {
-        "name": "name LIKE %s",
-        "email": "email LIKE %s",
-        "tier": "tier = %s",
-    }
-
-    filter_string = ""
-    args = ()
-
-    for index, key in enumerate(filters.keys()):
-        if index == 0:
-            filter_string += " WHERE "
-        else:
-            filter_string += " AND "
-
-        filter_string += filter_options[key]
-        args = (*args, filters[key])
-
+    params = []
     sql = f"""
         SELECT  c.cust_id
             ,   c.name
@@ -169,11 +146,24 @@ def search_customers(filters):
             ,   c.join_date
         FROM    customer c
         JOIN    vw_customer_tier t ON t.cust_id = c.cust_id
-        {filter_string}
-    ORDER BY    cust_id
+        WHERE 1=1
     """
 
-    return run_query(sql, args)
+    if filters.get("name"):
+        sql += " AND c.name LIKE %s"
+        params.append("%" + filters["name"] + "%")
+
+    if "email" in filters:
+        sql += " AND c.email LIKE %s"
+        params.append("%" + filters["email"] + "%")
+
+    if "tier" in filters:
+        sql += " AND t.tier = %s"
+        params.append(filters["tier"])
+
+    sql += " ORDER BY cust_id"
+
+    return run_query(sql, params)
 
 
 def get_customer(cust_id):
