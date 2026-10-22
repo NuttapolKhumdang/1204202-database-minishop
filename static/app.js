@@ -10,6 +10,14 @@ const ENTITIES = {
     "label": "ลูกค้า",
     "api": "/api/customers",
     "idKey": "cust_id",
+    "labels": {
+      "cust_id": "รหัสลูกค้า",
+      "name": "ชื่อ",
+      "email": "อีเมล",
+      "gender": "เพศ",
+      "birthdate": "วันเกิด",
+      "point": "คะแนน"
+    },
     "search": [
       {
         "key": "name",
@@ -71,6 +79,12 @@ const ENTITIES = {
     "api": "/api/products",
     "add": "/product",
     "idKey": "product_id",
+    "labels": {
+      "product_id": "รหัสสินค้า",
+      "name": "ชื่อสินค้า",
+      "price": "ราคา",
+      "stock": "จำนวนคงเหลือ"
+    },
     "search": [
       {
         "key": "name",
@@ -375,7 +389,8 @@ function renderTable(r) {
 
   setStatus(st, "พบ " + rows.length + " รายการ");
   const cols = Object.keys(rows[0]);
-  head.innerHTML = cols.map(c => "<th>" + c + "</th>").join("") + "<th>จัดการ</th>";
+  const labels = ENTITIES[current].labels || {};
+  head.innerHTML = cols.map(c => "<th>" + (labels[c] ?? c) + "</th>").join("") + "<th>จัดการ</th>";
   body.innerHTML = rows.map(row => {
     const id = row[ENTITIES[current].idKey];
     return "<tr>" + cols.map(c => "<td>" + (row[c] ?? "—") + "</td>").join("")
