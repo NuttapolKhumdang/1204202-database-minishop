@@ -325,8 +325,11 @@ def search_products(filters):
         if filters.get("is_active") in PRODUCT_STATUS:
             params.append(PRODUCT_STATUS[filters['is_active']])
 
-        if (filters.get("is_active") in ['0', '1']):
+        elif (filters.get("is_active") in ['0', '1']):
             params.append(filters['is_active'])
+
+        else:
+            params.append('1')
 
     if filters.get("name"):
         sql += " AND p.name LIKE %s"
@@ -510,7 +513,8 @@ def check_can_ship(order_id):
     problems = [f"{l['name']} (สั่ง {l['qty']} / คงเหลือ {l['stock'] or 0})"  # type: ignore
                 for l in lines
                 # type: ignore
-                if l["is_active"] == 0 or (l["stock"] or 0) < l["qty"]] # type: ignore
+                # type: ignore
+                if l["is_active"] == 0 or (l["stock"] or 0) < l["qty"]]
     if problems:
         return False, "ออเดอร์นี้ไม่สามารถจัดส่งได้ (สินค้าไม่พร้อม: " + ", ".join(problems) + ")"
     return True, "จัดส่งได้"
@@ -544,7 +548,8 @@ def update_order(order_id, data):
 
     # เปลี่ยนสถานะเป็น shipped ต้องผ่านการตรวจสต็อกก่อน (ดู check_can_ship)
     # type: ignore
-    if blank_to_none(data.get("status")) == "shipped" and current["status"] != "shipped": # type: ignore
+    # type: ignore
+    if blank_to_none(data.get("status")) == "shipped" and current["status"] != "shipped":
         ok, msg = check_can_ship(order_id)
         if not ok:
             raise ValueError(msg)
