@@ -58,7 +58,7 @@
               <p class="w-full text-left">รวม</p>
               <p class="w-full text-left">ส่วนลด</p>
             </section>
-            
+
             <section class="grid grid-cols-2 place-items-center w-full gap-2">
               <p class="w-full text-left">สุทธิ</p>
               <p class="w-full text-left">แต้มสะสม</p>
@@ -75,7 +75,7 @@
             <section class="grid grid-cols-2 place-items-center w-full gap-2">
               <span class="w-full text-left" id="total">ส่วนลด</span>
               <span class="w-full text-left" id="point">point</span>
-            </section>            
+            </section>
             </menu>
           </div>
         </div>
@@ -94,7 +94,7 @@
             </label>
             <label class="field">
               <span>จำนวน</span>
-              <input type="number" id="product-search-qty" min="1"  value="1" />
+              <input type="number" id="product-search-qty" min="1" value="1" />
             </label>
           </section>
 
@@ -126,17 +126,17 @@
         if ($(`input#${k}`)) $(`input#${k}`).value = order[k];
         if ($(`span#${k}`)) $(`span#${k}`).innerHTML = order[k];
       }
-      
+
       $(`span#total`).innerHTML = (order.sub_total - order.discount).toFixed(2);
       $(`option#status-${order.status}`).selected = true;
-      
-      
+
+
       $(`option#status-${order.status}`).selected = true;
-      
+
       const sub_total = order.sub_total;
       const discount = order.discount;
       const total = sub_total - discount;
-      const point = total * ( total >= 1000 ? 0.1 : 0.05);
+      const point = total * (total >= 1000 ? 0.1 : 0.05);
       $(`span#point`).innerHTML = ~~(point);
 
       addresses = (await (await fetch(`/api/customers/${order.cust_id}/address`)).json()).data;
@@ -204,16 +204,23 @@
     };
 
     const addLine = async (pid) => {
-      await fetch(`/api/orders/${order.order_id}/lines`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          product_id: Number.parseInt(pid),
-          qty: Number.parseInt($("#product-search-qty").value),
-        }),
-      });
+      let response;
+      try {
+        response =await fetch(`/api/orders/${order.order_id}/lines`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            product_id: Number.parseInt(pid),
+            qty: Number.parseInt($("#product-search-qty").value),
+          }),
+        });
+
+        const r = await response.json();
+        if (!r.ok)alert(r.error);
+      } catch (e) {console.error(e)}
+      
       renderOrderLines();
       renderOrders();
       searchProduct();
@@ -225,9 +232,9 @@
 
     async function searchProduct() {
       searchedProduct = (await (await fetch(
-        `/api/products?is_active=1` 
-        + (_searchKeyword ? `&name=${_searchKeyword}`: '' )
-        + (_searchCategory ? `&category=${_searchCategory}`: '')
+        `/api/products?is_active=1`
+        + (_searchKeyword ? `&name=${_searchKeyword}` : '')
+        + (_searchCategory ? `&category=${_searchCategory}` : '')
       )).json()).data;
       renderSearchProduct();
     }
