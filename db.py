@@ -108,17 +108,6 @@ def _text(value):
     return None if value is None else blank_to_none(str(value).strip())
 
 
-def _money(value, default=0):
-    """แปลงค่าที่ส่งมาเป็นตัวเลขทศนิยม (ว่าง → default)"""
-    value = blank_to_none(value)
-    if value is None:
-        return Decimal(default)
-    try:
-        return Decimal(str(value))
-    except InvalidOperation:
-        raise ValueError(f"ตัวเลขไม่ถูกต้อง: {value}")
-
-
 def _build_set(data, skip_blank=(), blank_to_null=()):
     """สร้างส่วน SET ของ UPDATE เฉพาะคอลัมน์ที่ส่งมา (ชื่อคอลัมน์มาจากโค้ด ค่าส่งผ่าน %s จึงปลอดภัย)"""
     cols, params = [], []
@@ -535,9 +524,7 @@ def update_order(order_id, data):
         raise ValueError(f"ไม่พบออเดอร์รหัส {order_id}")
 
     # เปลี่ยนสถานะเป็น shipped ต้องผ่านการตรวจสต็อกก่อน (ดู check_can_ship)
-    # type: ignore
-    # type: ignore
-    if blank_to_none(data.get("status")) == "shipped" and current["status"] != "shipped":
+    if blank_to_none(data.get("status")) == "shipped" and current["status"] != "shipped": # type: ignore
         ok, msg = check_can_ship(order_id)
         if not ok:
             raise ValueError(msg)
