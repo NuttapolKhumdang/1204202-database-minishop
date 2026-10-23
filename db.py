@@ -787,15 +787,14 @@ def get_review(review_id):
 
 
 def create_review(data):
-    sql = """INSERT INTO review (cust_id, order_id, product_id, rating, comment) VALUES (%s, %s, %s, %s, %s)"""
+    sql = """INSERT INTO review (order_id, product_id, rating, comment) VALUES (%s, %s, %s, %s)"""
 
-    cust_id = data['cust_id']
     order_id = data['order_id']
     product_id = data['product_id']
     rating = data['rating']
     comment = data['comment']
 
-    return run_command(sql, (cust_id, order_id, product_id, rating, comment, ))
+    return run_command(sql, (order_id, product_id, rating, comment, ))
 
 
 def update_review(review_id, data):
