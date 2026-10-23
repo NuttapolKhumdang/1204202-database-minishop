@@ -502,9 +502,7 @@ def check_can_ship(order_id):
 
     problems = [f"{l['name']} (สั่ง {l['qty']} / คงเหลือ {l['stock'] or 0})"  # type: ignore
                 for l in lines
-                # type: ignore
-                # type: ignore
-                if l["is_active"] == 0 or (l["stock"] or 0) < l["qty"]]
+                if l["is_active"] == 0 or (l["stock"] or 0) < l["qty"]] # type: ignore
     if problems:
         return False, "ออเดอร์นี้ไม่สามารถจัดส่งได้ (สินค้าไม่พร้อม: " + ", ".join(problems) + ")"
     return True, "จัดส่งได้"
@@ -625,7 +623,7 @@ def create_order_line(order_id, data):
 
 def delete_order_line(order_id, pid):
     def work(cur):
-        cur.execute("""	526.30
+        cur.execute("""
             SELECT qty FROM order_line
             WHERE       order_id = %s AND product_id = %s
         """, (order_id, pid, ))
