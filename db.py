@@ -722,7 +722,7 @@ def create_payment(data):
             """, (order_id, ))
         order = cur.fetchone()
 
-        if float(order['total']) == float(order['paided']):
+        if float(order['total']) >= float(order['paided']):
             total = float(order['total'])
             point = round(
                 total * (ORDER_POINT_MULTIPLYER[">=1000"] if total >= 1000 else ORDER_POINT_MULTIPLYER["<1000"]))
