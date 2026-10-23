@@ -15,11 +15,9 @@ DROP TABLE IF EXISTS address;
 DROP TABLE IF EXISTS customer;
 
 CREATE TABLE customer (
-    -- TODO: name, email, address, tier
-
     cust_id         INT AUTO_INCREMENT PRIMARY KEY,
     name            VARCHAR(100) NOT NULL,
-    email           VARCHAR(100) NOT NULL,
+    email           VARCHAR(100) NOT NULL UNIQUE,
     gender          VARCHAR(8),
     birthdate       DATE,
     point           INT NOT NULL DEFAULT 0,
@@ -28,14 +26,14 @@ CREATE TABLE customer (
 
 CREATE TABLE address (
     address_id      INT AUTO_INCREMENT PRIMARY KEY,
-    cust_id         INT,
+    cust_id         INT NOT NULL,
     address_type    VARCHAR(36),
     line_1          VARCHAR(100) NOT NULL,
     line_2          VARCHAR(100),
     province        VARCHAR(100) NOT NULL,
     postal_code     VARCHAR(6) NOT NULL,
 
-    CONSTRAINT fk_address_custmer   FOREIGN KEY (cust_id)
+    CONSTRAINT fk_address_customer      FOREIGN KEY (cust_id)
         REFERENCES customer (cust_id)
         ON UPDATE CASCADE
         ON DELETE CASCADE
@@ -43,99 +41,90 @@ CREATE TABLE address (
 
 CREATE TABLE category (
     category_id     INT AUTO_INCREMENT PRIMARY KEY,
-    name            VARCHAR(50)
+    name            VARCHAR(50) NOT NULL UNIQUE
 );
 
 CREATE TABLE product (
-    -- TODO: name, category, price, stock
-
     product_id      INT AUTO_INCREMENT PRIMARY KEY,
     name            VARCHAR(100) NOT NULL,
-    price           DECIMAL(7, 2) NOT NULL DEFAULT 0,
+    price           DECIMAL(9, 2) NOT NULL DEFAULT 0,
     stock           INT DEFAULT 0,
     is_active       BOOLEAN DEFAULT TRUE,
     added_date      DATE DEFAULT (CURRENT_DATE),
 
-    CONSTRAINT chk_product_price CHECK (price >= 0),
-    CONSTRAINT chk_product_stock CHECK (stock >= 0)
+    CONSTRAINT chk_product_price        CHECK (price >= 0),
+    CONSTRAINT chk_product_stock        CHECK (stock >= 0)
 );
 
 CREATE TABLE product_category (
     product_id      INT,
     category_id     INT,
 
-    CONSTRAINT fk_pcate_product FOREIGN KEY (product_id) 
+    CONSTRAINT pk_product_category      PRIMARY KEY (product_id, category_id),
+    CONSTRAINT fk_pcate_product         FOREIGN KEY (product_id) 
         REFERENCES product (product_id)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
-        
-    CONSTRAINT fk_pcate_category FOREIGN KEY (category_id) 
+    CONSTRAINT fk_pcate_category        FOREIGN KEY (category_id) 
         REFERENCES category (category_id)
         ON UPDATE CASCADE
         ON DELETE CASCADE
 );
 
 CREATE TABLE shop_order (
-    -- TODO: cust_id (FK), order_date, status
-
     order_id        INT AUTO_INCREMENT PRIMARY KEY,
     cust_id         INT NOT NULL,
     order_date      DATE NOT NULL DEFAULT (CURRENT_DATE),
     status          VARCHAR(8) DEFAULT 'pending',
-
-    address_id         INT,
+    address_id      INT,
     sub_total       DECIMAL(9, 2) NOT NULL,
     discount        DECIMAL(9, 2) NOT NULL,
 
     CONSTRAINT chk_order_sub_total      CHECK (sub_total >= 0),
     CONSTRAINT chk_order_discount       CHECK (discount >= 0),
     CONSTRAINT chk_order_status         CHECK (status IN ('pending', 'shipped', 'complete', 'cancel')),
-    CONSTRAINT fk_order_cust            FOREIGN KEY (cust_id) REFERENCES customer (cust_id),
-    CONSTRAINT fk_order_address         FOREIGN KEY (address_id) REFERENCES address (address_id)
+    CONSTRAINT fk_order_cust            FOREIGN KEY (cust_id)
+        REFERENCES customer (cust_id),
+    CONSTRAINT fk_order_address         FOREIGN KEY (address_id)
+        REFERENCES address (address_id)
 );
 
 CREATE TABLE order_line (         -- M:N: shop_order × product
-    -- TODO: order_id (FK), product_id (FK), qty, unit_price ; PRIMARY KEY (order_id, product_id)
-    
-    order_id        INT,
-    product_id      INT,
-    qty             INT,
-    unit_price      DECIMAL(9, 2),
+    order_id        INT NOT NULL,
+    product_id      INT NOT NULL,
+    qty             INT NOT NULL,
+    unit_price      DECIMAL(9, 2) NOT NULL,
 
     CONSTRAINT chk_order_line_qty       CHECK (qty > 0),
     CONSTRAINT chk_order_line_price     CHECK (unit_price >= 0),
     CONSTRAINT pk_order_line            PRIMARY KEY (order_id, product_id),
-    CONSTRAINT fk_order_line_order      
-        FOREIGN KEY (order_id) REFERENCES shop_order (order_id)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_order_line_product    
-    FOREIGN KEY (product_id) REFERENCES product (product_id)
-        ON DELETE CASCADE
+    CONSTRAINT fk_order_line_order      FOREIGN KEY (order_id)
+        REFERENCES shop_order (order_id),
+    CONSTRAINT fk_order_line_product    FOREIGN KEY (product_id)
+        REFERENCES product (product_id)
 );
 
 CREATE TABLE review (             -- M:N: customer × product
-    -- TODO: cust_id (FK), product_id (FK), rating, comment, review_date ; PRIMARY KEY (cust_id, product_id)
 	review_id		INT AUTO_INCREMENT PRIMARY KEY,
-    order_id        INT,
-    product_id      INT,
+    order_id        INT NOT NULL,
+    product_id      INT NOT NULL,
     rating          INT,
     comment         VARCHAR(256),
     review_date     DATE DEFAULT (CURRENT_DATE),
 
-    CONSTRAINT chk_review_rating    CHECK (rating BETWEEN 1 AND 5),
-    CONSTRAINT fk_review_order      FOREIGN KEY (order_id) REFERENCES shop_order (order_id),
-    CONSTRAINT fk_review_product    FOREIGN KEY (product_id) REFERENCES product (product_id)
+    CONSTRAINT chk_review_rating        CHECK (rating BETWEEN 1 AND 5),
+    CONSTRAINT uq_review_order_product  UNIQUE (order_id, product_id),
+    CONSTRAINT fk_review_order_line     FOREIGN KEY (order_id, product_id)
+        REFERENCES order_line (order_id, product_id)
 );
 
 CREATE TABLE payment (            -- 1:M จาก shop_order
-    -- TODO: order_id (FK), method, amount, paid_date
-
     payment_id      INT AUTO_INCREMENT PRIMARY KEY,
     order_id        INT,
     method          VARCHAR(24),
     amount          DECIMAL(9, 2) NOT NULL,
     paid_date       DATE DEFAULT (CURRENT_DATE) NOT NULL,
 
-    CONSTRAINT chk_payment_method   CHECK (method IN ('credit card', 'online banking')),
-    CONSTRAINT fk_payment_order     FOREIGN KEY (order_id) REFERENCES shop_order (order_id)
+    CONSTRAINT chk_payment_method       CHECK (method IN ('credit card', 'online banking')),
+    CONSTRAINT fk_payment_order         FOREIGN KEY (order_id) REFERENCES shop_order (order_id)
 );
