@@ -1,87 +1,27 @@
-     
+
 -- ## CUSTOMER ##
 INSERT INTO customer (name, email, gender, birthdate, point, join_date) VALUES
-('ภูวิช ทรัพย์สาร', 'naakhphanthumliwrrn@example.org', 'M', '2000-8-6', 0, '2026-4-1'),
-('ดวงสมร ดิศดใน', 'ltalaphat@example.com', 'F', '2004-12-1', 500, '2025-5-5'),
-('กองสิน ทวีเดช', 'thitinaththaaaithysuchaat@example.com', 'M', '2004-7-25', 0, '2025-4-16'),
-('ฐิติวุฒิ นามเสวตร', 'ssinaa32@example.com', 'F', '2011-1-15', 0, '2025-12-19'),
-('สรายุทธ ตวันเยี่ยม', 'qthngsiiaiphl@example.org', 'M', '2008-12-15', 0, '2025-5-23'),
-('สัญชาน ดุริยพันธุ์', 'aekmaephrsriiwngkh@example.com', 'F', '2010-11-10', 1000, '2025-4-18'),
-('ปิยนุช ปานสุวรรณ', 'wiirsudaathnadkaarekhiiyn@example.net', 'M', '2008-2-5', 500, '2025-7-12'),
-('กิติชัย แน่นดุจป้อม', 'thuuphmsuphatraa@example.com', 'F', '2002-10-26', 0, '2025-12-5'),
-('อชิตะวีร์ พรสีมา', 'suphaaliniithnmphl@example.com', 'M', '2009-3-16', 0, '2026-6-5'),
-('ณปภัช บุนยาภิสนท์', 'pannwachrsriiwngkh@example.net', 'F', '2008-9-19', 0, '2026-6-22'),
-('นิรันดร์ เนตร์มณี', 'thmlphrrnthrngokml@example.net', 'M', '2000-11-9', 1000, '2025-11-10'),
-('จิฬาภรณ์ ถนิมมาศ', 'phlbuymaasita@example.com', 'M', '2008-4-27', 0, '2025-3-5'),
-('ทิพรดา ไทยแท้', 'aicchklaang32@example.org', 'M', '2003-2-15', 5000, '2026-8-10'),
-('ศรีสวัสดิ์ ด้วงโสน', 'prawii80@example.net', 'F', '2009-12-27', 1000, '2025-12-20'),
-('ภัคศุภางค์ นามเสวตร', 'wichchaakrcchanthaa@example.net', 'F', '2004-5-27', 500, '2026-7-17'),
-('ยศวัฒน์ ดุษฎีวนิช', 'phichaaphphaecchngswaang@example.com', 'F', '2004-1-17', 1000, '2026-7-23'),
-('เอกอธิพงษ์ นิลวรรณ', 'phrphiail49@example.com', 'M', '2010-9-5', 0, '2026-2-4'),
-('กองสิน ทศโยธิน', 'wnathdaachaphphrrnthnkuur@example.org', 'M', '2006-9-9', 0, '2026-5-1'),
-('สุทกร ติระคมน์', 'cchuthaaratnchaphphrrnthnkuur@example.org', 'M', '2007-6-27', 1000, '2026-8-4'),
-('ยศวัฒน์ อุลหัสสา', 'thnadaawuthhlakthraphy@example.net', 'M', '2003-2-6', 1000, '2025-1-3'),
-('ณปภัช สุวรรณหงษ์', 'tangrbwithii@example.net', 'M', '2003-9-13', 1000, '2026-9-24'),
-('ณิชนันท์ ดวงทับทิม', 'thaaraanuttaar@example.net', 'M', '2011-4-6', 0, '2025-5-9'),
-('วรศาสส์ ถาวระวรณ์', 'buyyaamiitangephaa@example.net', 'M', '2002-6-27', 500, '2026-10-3'),
-('ใกล้รุ่ง นามเสวตร', 'chuuhaydaankthng@example.net', 'F', '2001-2-8', 0, '2025-9-17'),
-('ประวี หอมสิน', 'nphntaetkul@example.net', 'F', '2013-12-26', 500, '2025-5-26'),
-('ชิดชนก ทำประดู่', 'qtriiephrinthr@example.com', 'M', '2000-9-7', 500, '2026-2-11'),
-('นาทภูวพัฒน์ งามพิเชษฐ์', 'disrnthngpradith@example.com', 'F', '2013-6-19', 5000, '2026-10-12'),
-('ฐิตาพร ดิศดใน', 'aychisthaa92@example.com', 'M', '2011-3-2', 5000, '2026-3-24'),
-('ฐิติวุฒิ บุญญาไลย์', 'jsngpraesrith@example.com', 'M', '2008-8-24', 0, '2026-3-17'),
-('พชรภรณ์ นากกนก', 'phakhsuphaangkhnaamkham@example.com', 'F', '2012-7-4', 5000, '2026-4-22'),
-('ใกล้รุ่ง วาทา', 'chaachumaaaeesaaa@example.com', 'F', '2000-4-22', 0, '2026-5-3'),
-('อาแอเสาะ ยาปะโลหิต', 'phlaanuch21@example.org', 'F', '2005-6-24', 0, '2025-3-16'),
-('สิราพร ฉิมพาลี', 'lthngpradith@example.net', 'F', '2003-10-17', 5000, '2025-6-16'),
-('ธัญญกัญญา ถนัดเดินข่าว', 'xthnadrb@example.org', 'F', '2002-2-2', 0, '2026-10-1'),
-('อชิตะวีร์ พานเกล้า', 'fthngsiiaiphl@example.com', 'M', '2011-5-5', 0, '2025-11-19'),
-('รักชนก เช้าวันดี', 'yuuchufbindii@example.net', 'F', '2012-2-8', 0, '2026-10-24'),
-('ณภัทร ไตรบรรพ', 'thnadaksrsuphnth@example.com', 'M', '2007-11-5', 0, '2026-7-9'),
-('ศรินยา เตชะกำพุ', 'qthaawrratn@example.com', 'F', '2007-2-14', 0, '2026-7-14'),
-('กวีฉัฏฐ ตัณฑนุช', 'chaachumecchtthnaakr@example.org', 'F', '2005-1-7', 0, '2025-10-1');
+('สุพัตร ทหารแท้', 'sukrstaa28@example.org', 'Male', '2005-9-15', 5000, '2026-6-20'),
+('สุธาวี ปรีชากุลเศรษฐ์', 'nathphichaa77@example.org', 'Male', '2010-9-15', 500, '2026-10-9'),
+('วาสุเทพ บุญส่ง', 'lnaakhwngs@example.net', 'Male', '2006-12-10', 0, '2026-8-15'),
+('ธมลพรรณ ธรรมนิยม', 'nnthkaaycchn32@example.net', 'Female', '2013-3-7', 0, '2026-10-22'),
+('ทินพร หอมพิกุล', 'gchamnaaywaad@example.com', 'Female', '2009-6-12', 0, '2026-12-9'),
+('สมนึก บุญบำรุง', 'priyyaaaitrbrrph@example.net', 'Male', '2012-11-20', 0, '2025-2-24'),
+('พรพิไล ทวีเดช', 'nuttaarniti@example.com', 'Female', '2011-8-20', 0, '2025-10-4'),
+('พศร ถมปัด', 'niymsamhrwcchkhdieyaaa@example.com', 'Male', '2002-12-15', 5000, '2025-1-21'),
+('กษิดิฐ นิยมธรรม', 'tanthnuchwrprachy@example.net', 'Male', '2004-9-27', 500, '2025-7-1');
 
 -- ## ADDRESS ##
 INSERT INTO address (address_type, cust_id, line_1, province, postal_code) VALUES
-('work', 1, '976/6 ถ.นพตระกูล นาเชือกใหญ่ หนองบัวแดง', 'อุตรดิตถ์', '84240'),
-('home', 2, '138 ถ.ทองสุกเลิศ อำเภอปลาปาก', 'สตูล', '87650'),
-('work', 3, '697 ถนนธนรักษ์ บ้านปังหวาน แม่ลาว', 'กาฬสินธุ์', '38800'),
-('work', 4, '227 ถ.ศรีวงค์ อำเภอนาแก', 'สิงห์บุรี', '72300'),
-('home', 5, '746/6 ถ.เลขะพันธุ์ ต.เขาพระนอน อ.บ่อไร่', 'สมุทรสงคราม', '37250'),
-('work', 6, '21/5 ถ.ไชยภา อ.บำเหน็จณรงค์', 'ประจวบคีรีขันธ์', '14430'),
-('home', 7, '82 ถนนตรีเภรินทร์ เนินสง่า', 'สิงห์บุรี', '36020'),
-('work', 8, '871/4 ถนนแน่นดุจป้อม ต.เขาพระนอนกลาง อ.ปากคาด', 'กทม.', '73660'),
-('home', 9, '23/7 ถนนแท่นทอง อ.นาหว้า', 'หนองคาย', '94340'),
-('work', 10, '03 หมู่ 35 ถนนถนอมกุลบุตร อ.แก้งคร้อ', 'พิจิตร', '88850'),
-('home', 11, '78 ถนนถุงเงิน ต.เปือยใหญ่ใต้ อ.เวียงชัย', 'มหาสารคาม', '90900'),
-('home', 12, '4/0 ถ.ไม้แดง เขาปูนใต้', 'ยะลา', '90250'),
-('home', 13, '941/1 ถนนพรสีมา อำเภอแก้งคร้อ', 'สุพรรณบุรี', '78250'),
-('work', 14, '268/7 ถ.ดวงทับทิม บ่อสุขเดือนห้า', 'ราชบุรี', '40090'),
-('home', 15, '8 ถนนศิวะวรเวท ปากแจ่มใต้', 'พังงา', '62530'),
-('work', 16, '99 หมู่ 93 ถ.แหยมศิริ อ.เมือง', 'นนทบุรี', '63930'),
-('work', 17, '30 หมู่ 5 ถ.ทองอยู่ ท่าเรือ พระนคร', 'ยโสธร', '55730'),
-('work', 18, '331/1 ถ.สงประเสริฐ อ.เวียงป่าเป้า', 'ภูเก็ต', '41660'),
-('work', 19, '49 หมู่ 15 ถนนถนัดรบ ตำบลสุขเดือนห้า อำเภอบ่อไร่', 'สุรินทร์', '41100'),
-('home', 20, '3 ถนนทองลาภ ท่าเรือ', 'อำนาจเจริญ', '97240'),
-('home', 21, '2 ถนนทศโยธิน ต.เว่อใหญ่', 'อ.แม่ลาว', '18560'),
-('work', 22, '7 ถนนไตรบรรพ ต.บัวบาน', 'นครศรีธรรมราช', '97370'),
-('work', 23, '62/33 ถนนสาระพันธ์ ต.ก้อนแก้ว', 'อ.เทิง', '50130'),
-('work', 24, '82 หมู่ 67 ต.ทุ่งต่อ อ.เนินสง่า', 'มหาสารคาม', '33860'),
-('work', 25, '20 ถนนถนัดพิมพการ เนินขาม', 'เพชรบูรณ์', '44130'),
-('home', 26, '84 หมู่ 92 ถนนตัณฑนุช ต.บางปะกอก อ.ศรีวิไล', 'หนองบัวลำภู', '19320'),
-('home', 27, '881/03 ถนนดุษฎีวนิช ต.พระรักษ์ อ.เมือง', 'บุรีรัมย์', '63680'),
-('work', 28, '79 หมู่ 7 ถนนธนรักษ์ อ.แก้งคร้อ', 'สงขลา', '18710'),
-('home', 29, '3 ถ.ทวีเดช ตำบลเขาขาวใหญ่', 'ปัตตานี', '88260'),
-('home', 30, '702/6 หมู่บ้านกวีฉัฏฐ วังยาง', 'สุโขทัย', '62640'),
-('home', 31, '25/79 ถนนถะเกิงชศ วัดหนองปลาหมอ', 'ลำปาง', '59350'),
-('home', 32, '1 ถ.ตราชู คลองขาม บำเหน็จณรงค์', 'ลำปาง', '54520'),
-('work', 33, '7/3 ถนนถนัดภาษา ตำบลยางตลาด อำเภอเรณูนคร', 'พิษณุโลก', '64010'),
-('home', 34, '30 หมู่ 5 ถ.แจ้งสว่าง ลำภูรา เนินสง่า', 'มหาสารคาม', '98320'),
-('home', 35, '347/3 หมู่บ้านพิมพ์สุตา ภาษีเจริญ', 'นครปฐม', '39580'),
-('home', 36, '47/94 ถ.ตรีครุธพันธุ์ บัวบานใต้ ห้วยขวาง', 'สมุทรสาคร', '77650'),
-('home', 37, '926 ถ.ศิวะวรเวท อำเภอสามโคก', 'เพชรบูรณ์', '50860'),
-('work', 38, '079/5 ถนนศาสตร์ศิลป์ วัดยางตลาดเหนือ บางสะพานน้อย', 'อ่างทอง', '11610'),
-('home', 39, '830/2 ถ.แท่นทอง ตำบลเขาพระนอนเหนือ อำเภอภักดีชุมพล', 'กรุงเทพมหานคร', '54570');
+('home', 1, '8 ถนนนิละทัต ต.บ้านบัวบาน อ.แม่ลาว', 'สกลนคร', '93110'),
+('work', 2, '135/4 ถ.เลิศกิ่ง เนินขามใหญ่', 'พระนครศรีอยุธยา', '14490'),
+('home', 3, '4/3 ถนนทองแท้ ต.อุ่มเม่าใหญ่ อ.หนอกจอก', 'สุโขทัย', '98070'),
+('work', 4, '1 ถ.นาคสุทิน ตำบลบางปะกอก อำเภอหนองบัวแดง', 'ยะลา', '81860'),
+('work', 5, '01 หมู่ 4 ถนนนครเทพ ต.วัดบางเล่าใต้ อ.เทิง', 'สงขลา', '54300'),
+('home', 6, '7 ถนนพานเกล้า เทพศิรินทร์ บ้านแท่น', 'มุกดาหาร', '95280'),
+('home', 7, '46/5 ถ.นครเทพ ต.คลองเขื่อน', 'อ.นาหว้า', '32060'),
+('work', 8, '8/5 ถนนตราชู อ.เขาสมิง', 'ตาก', '45080'),
+('work', 9, '0 ถนนขันธุลา', 'อุทัยธานี', '28380');
 
 -- ## CATEGORY ##
 INSERT INTO category (category_id, name) VALUES
@@ -141,96 +81,105 @@ INSERT INTO category (category_id, name) VALUES
 (54, 'For repair');
 
 -- ## PRODUCT ##
-INSERT INTO product (name, price, stock) VALUES
-('Frozen Fish', 120, 135),
-('Concrete Gloves', 505, 94),
-('Refined Sausages', 196, 90),
-('Metal Fish', 379, 152),
-('Frozen Towels', 114, 154),
-('Tuna', 280, 172),
-('Wooden Pizza', 208, 109),
-('Sleek Bike', 346, 107),
-('Licensed Fresh Chicken', 113, 10),
-('Chicken', 144, 108),
-('Awesome Steel Shirt', 355, 19),
-('Sleek Chicken', 239, 85),
-('Practical Cotton Sausages', 164, 60),
-('Plastic Shoes', 307, 127),
-('Cheese', 192, 141),
-('Fish', 326, 136),
-('Shoes', 431, 134),
-('Gloves', 389, 71),
-('Refined Bike', 239, 144);
+INSERT INTO product (product_id, name, price, stock) VALUES
+(1, 'The Great Gatsby Special Edition', 650.00, 150),
+(2, 'Ergonomic Office Chair', 4500.00, 45),
+(3, 'Wireless Noise-Canceling Headphones', 9900.00, 120),
+(4, 'Handcrafted Wooden Dining Table', 29000.00, 5),
+(5, 'Vintage Leather Jacket', 3900.00, 12),
+(6, 'Smart LED TV 55-inch', 14900.00, 30),
+(7, 'Organic Green Apples', 150.00, 500),
+(8, 'Pepperoni Pizza', 199.00, 200),
+(9, 'Heavy-Duty Hammer', 490.00, 85),
+(10, 'Non-Slip Yoga Mat', 750.00, 110),
+(11, 'Broken Gaming Laptop', 1500.00, 2),
+(12, 'Mortar and Pestle', 1050.00, 40),
+(13, 'Batman Action Figure', 790.00, 300),
+(14, 'Basic V-Neck Blank Tee', 299.00, 450),
+(15, 'Diamond Pendant Necklace', 6500.00, 8),
+(16, 'Large Planter Box', 1350.00, 25),
+(17, 'Compact Stroller', 2500.00, 15),
+(18, 'Power Drill Set', 4200.00, 60),
+(19, 'Sci-Fi Anthology Collection', 390.00, 75),
+(20, 'Plush Teddy Bear', 550.00, 250);
 
--- ## PRODUCT CATEGORIES ##
+-- ## CATEGORY ##
 INSERT INTO product_category (product_id, category_id) VALUES
-(1, 13), (1, 22), (1, 38),
-(2, 8), (2, 43), (2, 36), (2, 53), (2, 21),
-(3, 5), (3, 29), (3, 46), (3, 42), (3, 36),
-(4, 4), (4, 34), (4, 47), (4, 45), (4, 28),
-(5, 5), (5, 43), (5, 29),
-(6, 5), (6, 49), (6, 43), (6, 20), (6, 22),
-(7, 14), (7, 48), (7, 31),
-(8, 19), (8, 34), (8, 37),
-(9, 1), (9, 40), (9, 53), (9, 22), (9, 20),
-(10, 12), (10, 37), (10, 24), (10, 47),
-(11, 4), (11, 35), (11, 50), (11, 45), (11, 52),
-(12, 17), (12, 22), (12, 47), (12, 33), (12, 37), (12, 50),
-(13, 16), (13, 50), (13, 51), (13, 24),
-(14, 1), (14, 52), (14, 44), (14, 24), (14, 33), (14, 23),
-(15, 6), (15, 22), (15, 44), (15, 41), (15, 29), (15, 37),
-(16, 18), (16, 43), (16, 51), (16, 41), (16, 33),
-(17, 7), (17, 30), (17, 29), (17, 49),
-(18, 3), (18, 40), (18, 24), (18, 35), (18, 29), (18, 22),
-(19, 9), (19, 31), (19, 30);
+-- 1: Books, New, Fantastic
+(1, 1), (1, 51), (1, 40),
+-- 2: Home, Ergonomic, New
+(2, 7), (2, 35), (2, 51),
+-- 3: Electronics, Awesome, New
+(3, 5), (3, 43), (3, 51),
+-- 4: Home, Wooden, Handcrafted, Rustic
+(4, 7), (4, 24), (4, 45), (4, 36),
+-- 5: Clothing, Gently Used, Awesome
+(5, 16), (5, 52), (5, 43),
+-- 6: Electronics, Intelligent, Sleek, New
+(6, 5), (6, 37), (6, 42), (6, 51),
+-- 7: Grocery, Fresh, Tasty
+(7, 10), (7, 32), (7, 50),
+-- 8: Grocery, Frozen, Tasty
+(8, 10), (8, 33), (8, 50),
+-- 9: Tools, Steel, Practical, New
+(9, 9), (9, 23), (9, 41), (9, 51),
+-- 10: Sports, Rubber, Soft, New
+(10, 19), (10, 29), (10, 31), (10, 51),
+-- 11: Computers, For repair, Electronics
+(11, 6), (11, 54), (11, 5),
+-- 12: Home, Granite, Small, Practical
+(12, 7), (12, 28), (12, 34), (12, 41),
+-- 13: Toys, Kids, Licensed, Plastic
+(13, 13), (13, 14), (13, 47), (13, 26),
+-- 14: Clothing, Cotton, Unbranded, Generic
+(14, 16), (14, 27), (14, 49), (14, 44),
+-- 15: Jewelery, Refined, Gorgeous, New
+(15, 18), (15, 48), (15, 38), (15, 51),
+-- 16: Garden, Concrete, Outdoors, Handmade
+(16, 8), (16, 25), (16, 20), (16, 46),
+-- 17: Baby, Practical, Sleek, Gently Used
+(17, 15), (17, 41), (17, 42), (17, 52),
+-- 18: Tools, Industrial, Metal, New
+(18, 9), (18, 22), (18, 30), (18, 51),
+-- 19: Movies, Incredible, Used
+(19, 2), (19, 39), (19, 53),
+-- 20: Toys, Kids, Soft, Baby
+(20, 13), (20, 14), (20, 31), (20, 15);
+
 
 -- ## SHOP ORDER ##
-INSERT INTO shop_order (cust_id, order_date, status, address_id, sub_total, discount) VALUES
-(1, '2025-6-5', 'pending', 1, 0, 0),
-(2, '2025-6-20', 'shipped', 2, 0, 0),
-(3, '2025-3-10', 'cancel', 3, 0, 0),
-(4, '2025-9-2', 'shipped', 4, 0, 0),
-(5, '2025-1-27', 'pending', 5, 0, 0),
-(6, '2025-2-17', 'pending', 6, 0, 0),
-(7, '2025-11-9', 'shipped', 7, 0, 0),
-(8, '2025-10-13', 'shipped', 8, 0, 0),
-(9, '2026-1-9', 'pending', 9, 0, 0);
+INSERT INTO shop_order (order_id, cust_id, order_date, status, address_id, sub_total, discount) VALUES
+(1, 1, '2025-09-03', 'complete', 1, 5150.00, 0.00),
+(2, 2, '2025-09-05', 'shipped',  2, 499.00, 0.00),
+(3, 3, '2025-09-10', 'pending',  3, 9900.00, 500.00),
+(4, 4, '2025-09-12', 'complete', 4, 4690.00, 190.00),
+(5, 5, '2025-09-15', 'cancel',   5, 6500.00, 0.00);
 
 -- ## ORDER LINE ##
-INSERT INTO order_line(order_id, product_id, qty, unit_price) VALUES
-(1, 5, 2, 0), (1, 16, 4, 0), (1, 17, 3, 0), (1, 8, 1, 0), (1, 14, 4, 0), (1, 1, 2, 0),
-(2, 18, 4, 0), (2, 8, 4, 0), (2, 9, 3, 0), (2, 4, 3, 0), (2, 7, 3, 0), (2, 6, 2, 0),
-(3, 12, 3, 0), (3, 3, 4, 0), (3, 19, 4, 0), (3, 9, 1, 0), (3, 17, 1, 0), (3, 13, 2, 0),
-(4, 11, 1, 0), (4, 14, 1, 0), (4, 8, 2, 0), (4, 4, 2, 0), (4, 3, 4, 0), (4, 18, 4, 0), (4, 13, 2, 0), (4, 7, 3, 0),
-(5, 11, 3, 0), (5, 7, 2, 0), (5, 15, 2, 0), (5, 19, 4, 0), (5, 9, 4, 0), (5, 3, 3, 0), (5, 1, 4, 0),
-(6, 4, 2, 0), (6, 2, 2, 0), (6, 8, 4, 0),
-(7, 11, 4, 0), (7, 3, 4, 0), (7, 15, 2, 0), (7, 9, 4, 0), (7, 17, 2, 0), (7, 1, 2, 0), (7, 2, 3, 0), (7, 12, 4, 0), (7, 5, 4, 0),
-(8, 1, 2, 0), (8, 6, 1, 0), (8, 10, 3, 0), (8, 16, 2, 0), (8, 18, 1, 0), (8, 4, 1, 0), (8, 17, 4, 0),
-(9, 5, 3, 0);
-
+INSERT INTO order_line (order_id, product_id, qty, unit_price) VALUES
+(1, 1, 1, 650.00),
+(1, 2, 1, 4500.00),
+(2, 7, 2, 150.00),
+(2, 8, 1, 199.00),
+(3, 3, 1, 9900.00),
+(4, 9, 1, 490.00),
+(4, 18, 1, 4200.00),
+(5, 15, 1, 6500.00);
 -- ## REVIEW ##
-INSERT INTO review (order_id, product_id, rating, comment) VALUES
-(1, 1, 2, 'บริษัทเพลงคำสั่งบูชา '),
-(2, 2, 4, 'เชื่อมห่มผ้าเงาผัก โตช้าอินเทอร์เน็ตที่มัสยิด เจ็บไข้ดีหยักหนูลงมือแท็บลอยด์ ตู้เขยิบวินโดวส์แมลง '),
-(3, 16, 4, 'เศษน้าครูตลอดเชื่อมสารวัตรหน้าต่าง ชูไชโยชะนี '),
-(4, 8, 2, 'ระเบียงเสรีนิยมตั้งแต่ง่วงเมล็ดแม้ไอโอเอส วังยีราฟแข้งศาลากลางข้าวเจ้าเมล็ด ดีเสรีภาพชนิดร่างกายระเบียงหุ้มร่างสาธารณรัฐ '),
-(5, 13, 4, 'เป้าเสรีภาพสารวัตรกตัญญูยีราฟ ฉีดกว้างพนมมือแซง เรียงหุ้มเคยแต่ง '),
-(6, 11, 3, 'แต่งบันไดรถบัสกิ่งไม้รถทัวร์แพ้พิพักพิพ่วน วิกิพีเดียทำสวนเอสซีบีเมล็ดสำหรับ '),
-(7, 9, 2, 'กลล่อปากย่อสมองกล่าว บอกใบ้ห่อข้าวแมคตัวเมียสหกรณ์ย่อจะไปพั่ง '),
-(8, 16, 4, 'ร้อนถางยันรถถังกูเกิลคำสั่ง อาสาอาหารอธิษฐานเช้าแรกหมดประชาธิปไตย '),
-(9, 18, 1, 'เคยรู้จักเป็นไต้ขาดเคิ่งน้า ตรวจกล่องระเบียงคอมมิวนิสต์ ');
-      
+-- Note: The (order_id, product_id) combination MUST exist in order_line because of the fk_review_order_line constraint.
+INSERT INTO review (order_id, product_id, rating, comment, review_date) VALUES
+(1, 1, 5, 'Great book, arrived in perfect condition.', '2025-09-07'),
+(1, 2, 4, 'Very comfortable chair, but assembly took a while.', '2025-09-08'),
+(4, 18, 5, 'Powerful drill, gets the job done easily.', '2025-09-16');
+
 -- ## PAYMENT ##
+-- Note: The amount should logically equal (sub_total - discount) from the shop_order table.
 INSERT INTO payment (order_id, method, amount, paid_date) VALUES
-( 1, 'credit card', 0, '2025-2-13'),
-( 2, 'credit card', 0, '2026-6-22'),
-( 3, 'online banking', 0, '2025-9-6'),
-( 4, 'credit card', 0, '2025-9-20'),
-( 5, 'online banking', 0, '2026-11-9'),
-( 6, 'online banking', 0, '2026-7-4'),
-( 7, 'credit card', 0, '2026-10-3'),
-( 8, 'credit card', 0, '2026-5-16'),
-( 9, 'online banking', 0, '2026-2-3');
+(1, 'credit card', 5150.00, '2025-09-03'),
+(2, 'online banking', 499.00, '2025-09-05'),
+(3, 'credit card', 9400.00, '2025-09-10'),
+(4, 'online banking', 4500.00, '2025-09-12'),
+(5, 'credit card', 6500.00, '2025-09-15');
 
 -- ## UPDATE ORDER LINE unit_price ##
 UPDATE order_line
@@ -255,11 +204,12 @@ SET		discount = IFNULL(sub_total * (
 
 -- ## UPDATE PAYMENT amount ##
 UPDATE payment
-SET amount = (SELECT sub_total - discount FROM shop_order WHERE shop_order.order_id = payment.order_id),
- paid_date = (SELECT order_date FROM shop_order WHERE shop_order.order_id = payment.order_id);
+JOIN shop_order ON shop_order.order_id = payment.order_id
+SET amount = shop_order.sub_total - shop_order.discount,
+ paid_date = shop_order.order_date;
 
--- ## UPDATE SHOP ORDER discount ##
+-- ## UPDATE REVIEW review_date ##
 UPDATE review
-JOIN   shop_order ON shop_order.order_id = review.order_id
-SET    review.review_date = shop_order.order_date;
+JOIN shop_order ON shop_order.order_id = review.order_id
+SET review.review_date = shop_order.order_date;
 

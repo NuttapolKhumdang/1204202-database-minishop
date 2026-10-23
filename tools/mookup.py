@@ -11,7 +11,7 @@ fake = Faker(['th_TH'])
 fake.add_provider(faker_commerce.Provider)
 
 MIN_CUSTOMER_ID = 1
-MAX_CUSTOMER_ID = 40
+MAX_CUSTOMER_ID = 10
 
 MIN_PRODUCT_ID = 1
 MAX_PRODUCT_ID = 20

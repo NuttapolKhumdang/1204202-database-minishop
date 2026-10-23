@@ -8,6 +8,6 @@
 #สามารถ connect เป็น localhost ในเครื่องตัวเองได้
 DB_HOST = "localhost"               # TODO: host ที่อาจารย์แจกให้
 DB_USER = "root"                     # TODO: username ของนิสิต
-DB_PASSWORD = "1234"                 # TODO: password ของนิสิต
-DB_NAME = "shop_online"              # TODO: ชื่อฐานข้อมูลของนิสิต
+DB_PASSWORD = "abcd1234"                 # TODO: password ของนิสิต
+DB_NAME = "minishop"              # TODO: ชื่อฐานข้อมูลของนิสิต
 DB_PORT = 3306
