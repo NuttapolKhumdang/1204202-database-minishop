@@ -1,6 +1,6 @@
 :root {
-  --navy: #1B2A52;
-  --navy2: #2A3F73;
+  --navy: #FF933E;
+  --navy2: #FFCB56;
   --coral: #EF5B4C;
   --gold: #F4B731;
   --ink: #1B2A52;
@@ -46,7 +46,7 @@ body {
 
 .brand span {
   font-size: 13px;
-  color: #C7D0E6;
+  color: #FFF;
   font-weight: 400;
   margin-left: 6px
 }
